@@ -1,0 +1,5 @@
+Node 1 tux175 10010 50 120 links tux175 10011 
+Node 2 tux175 10011 80 120 links tux175 10010 tux180 10010 tux180 10011 
+Node 3 tux180 10010 180 170 links tux175 10011 tux180 10011 
+Node 4 tux180 10011 160 50 links tux175 10011 tux180 10010 
+Node 5 NewHostName12345 NewPortNumber54321 -88 -99 links 
