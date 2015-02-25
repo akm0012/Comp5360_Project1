@@ -1,4 +1,10 @@
-Node 1 tux175 10010 50 120 links tux175 10011
-Node 2 tux175 10011 80 120 links tux175 10010 tux180 10010 tux180 10011
-Node 3 tux180 10010 180 170 links tux175 10011 tux180 10011
-Node 4 tux180 10011 160 50 links tux175 10011 tux180 10010
+Node 1 test_hostname test_port_num 0 0 links
+Node 2 NewHostName12345 NewPortNumber54321 -88 -99 links
+Node 3 NewHostName12345 NewPortNumber54321 -88 -99 links
+Node 4 NewHostName12345 NewPortNumber54321 -88 -99 links
+Node 5 NewHostName12345 NewPortNumber54321 -88 -99 links
+Node 6 NewHostName12345 NewPortNumber54321 -88 -99 links
+Node 7 NewHostName12345 NewPortNumber54321 -88 -99 links
+Node 8 NewHostName12345 NewPortNumber54321 -88 -99 links
+Node 9 NewHostName12345 NewPortNumber54321 -88 -99 links
+Node 10 NewHostName12345 NewPortNumber54321 -88 -99 links

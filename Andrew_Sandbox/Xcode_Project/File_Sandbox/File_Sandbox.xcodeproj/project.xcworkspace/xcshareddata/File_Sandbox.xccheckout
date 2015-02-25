@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
+	<false/>
+	<key>IDESourceControlProjectIdentifier</key>
+	<string>68684066-2A91-49F1-B949-DD6AA0A85F7E</string>
+	<key>IDESourceControlProjectName</key>
+	<string>File_Sandbox</string>
+	<key>IDESourceControlProjectOriginsDictionary</key>
+	<dict>
+		<key>0A1DDE8A25D91948D43B510DAC1721592F78C72B</key>
+		<string>https://github.com/akm0012/Comp5360_Project1.git</string>
+	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>Andrew_Sandbox/Xcode_Project/File_Sandbox/File_Sandbox.xcodeproj</string>
+	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
+	<dict>
+		<key>0A1DDE8A25D91948D43B510DAC1721592F78C72B</key>
+		<string>../../../../..</string>
+	</dict>
+	<key>IDESourceControlProjectURL</key>
+	<string>https://github.com/akm0012/Comp5360_Project1.git</string>
+	<key>IDESourceControlProjectVersion</key>
+	<integer>111</integer>
+	<key>IDESourceControlProjectWCCIdentifier</key>
+	<string>0A1DDE8A25D91948D43B510DAC1721592F78C72B</string>
+	<key>IDESourceControlProjectWCConfigurations</key>
+	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>0A1DDE8A25D91948D43B510DAC1721592F78C72B</string>
+			<key>IDESourceControlWCCName</key>
+			<string>Comp5360_Project1</string>
+		</dict>
+	</array>
+</dict>
+</plist>
