@@ -8,9 +8,10 @@
 
 #include <iostream>
 #include <fstream>
+#include <cstdlib>
 #include <unistd.h>
 
-#define DEBUG 1
+#define DEBUG 0
 
 
 
@@ -22,7 +23,7 @@ struct node_info
 	int node_number;
 	string node_hostname;
 	string node_port_number;
-	int node_x_coordinate;
+	float node_x_coordinate;
 	int node_y_coordinate;
 	
 	int number_of_links;
@@ -85,13 +86,8 @@ void read_node_info(node_info (&nodes)[11]) {
 				
 				link_counter = 0;
 				
-				cout << "Peek: " << myfile.peek() << '\n';
-				
 				while (myfile.peek() != '\n')
 				{
-					cout << "Peek: " << myfile.peek() << '\n';
-					
-					cout << "PEEEEEK!\n";
 					myfile >> next_word;
 					
 					// Check to see if "links" is the next word
@@ -104,7 +100,10 @@ void read_node_info(node_info (&nodes)[11]) {
 						
 						link_counter++;
 						
-						cout << "LINK FOUND!\n";
+						if (DEBUG){
+							cout << "LINK FOUND!\n";
+						}
+						
 						
 						nodes[node_num].number_of_links = link_counter;
 						
@@ -160,18 +159,17 @@ bool file_exists(const char *filename)
 	if (file_to_check.fail())
 	{
 		file_to_check.close();
-		cout << "FILE IS NOT HERE!\n";
 		return false;
 	}
 	
-	cout << "FILE IS HERE!\n";
 	file_to_check.close();
 	return true;
 	
 }
 
 /*
- *
+ * Determines if the Config.txt file exsists.
+ * Then it determines what node number you are.
  */
 int initial_config(string hostname_in, string portnum_in) {
 	
@@ -248,8 +246,6 @@ void rewrite_config_file(const node_info (&nodes)[11])
 			outStream << nodes[i].node_y_coordinate << " ";
 			outStream << "links";
 			
-			cout << "Number of links!!: " << nodes[i].number_of_links << '\n';
-			
 			for (int y = 0; y < nodes[i].number_of_links; y++)
 			{
 				outStream << " " << nodes[i].connected_hostnames[y] << " ";
@@ -317,15 +313,39 @@ void display_all_node_data(node_info (&nodes)[11])
 
 int main(int argc, const char * argv[]) {
 	
-	// NOTE: For ease of use the index will match the Node Number
-	// So nodes [0] will remain empty.
-	int my_node_num;
+	
+	
+	/*	This holds all the Node info.
+	*	NOTE: For ease of use the index will match the Node Number
+	*	So nodes [0] will remain empty.
+	*/
 	node_info nodes[11];
 	
+	// This node's number
+	int my_node_num;
+	
+	// The node's X and Y coordinate (temp because it is always being written)
+	float x_temp = 0;
+	int y_temp = 0;
+	
+	// The node's velocity along X Axis
+	float speed_meter_per_sec = 30;
+	
+	// Initilaze your node list.
 	init_nodes(nodes);
 	
-	string hostname = "test_hostname";
-	string port_num = "test_port_num";
+	if (argc != 3)
+	{
+		cout << "Error: Missing Params (Hostname, PortNumber)\n";
+		exit(1);
+	}
+	
+	// Get the host name and port number from Commnad Line
+	string hostname = argv[1];
+	string port_num = argv[2];
+	
+//	string hostname = "test_hostname";
+//	string port_num = "test_port_num";
 	
 	my_node_num = initial_config(hostname, port_num);
 	
@@ -347,34 +367,58 @@ int main(int argc, const char * argv[]) {
 		
 		// Logic to determine starting X and Y for this car
 		
-		int new_x = -88;
-		int new_y = -99;
+		x_temp = 0;
+		y_temp = 5;
 		
 		// Logic that determines what nodes are my links
+		nodes[my_node_num].number_of_links = 1; // Don't forget to set this!
+		nodes[my_node_num].connected_hostnames[0] = "TuxPoo";
+		nodes[my_node_num].connected_ports[0] = "PortPoo";
 		
 		// Update the nodes data structure
 		nodes[my_node_num].node_number = my_node_num;
-		nodes[my_node_num].node_hostname = "NewHostName12345";
-		nodes[my_node_num].node_port_number = "NewPortNumber54321";
-		nodes[my_node_num].node_x_coordinate = new_x;
-		nodes[my_node_num].node_y_coordinate = new_y;
+		nodes[my_node_num].node_hostname = hostname;
+		nodes[my_node_num].node_port_number = port_num;
+		nodes[my_node_num].node_x_coordinate = x_temp;
+		nodes[my_node_num].node_y_coordinate = y_temp;
 		
 		// Rewrite file with new info
 		rewrite_config_file(nodes);
 		
 	}
 	
-	//	display_all_node_data(nodes);
+//	display_all_node_data(nodes);
 	
 	// ----- BEGIN MAIN LOOP -----
 	
+	srand(time(0));
+	//srand(18);
 	
-	//	while (1)
-	//	{
-	//		sleep(1);
-	//		read_node_info(nodes);
-	//
-	//	}
+	while (1)
+	{
+		usleep(10000); // Sleep for 10 ms (10000 micro)
+		
+		// Update Node Info
+		read_node_info(nodes);
+		
+		// Take actions based on new info
+		
+		cout << "Speed: " << speed_meter_per_sec / 100.0 << '\n';
+		
+		x_temp = x_temp + (speed_meter_per_sec / 100);
+
+//		x_temp = (rand() % 100) + 1; // Random value [1, 100]
+		y_temp = (rand() % 100) + 1;
+		
+		nodes[my_node_num].node_x_coordinate = x_temp;
+		nodes[my_node_num].node_y_coordinate = y_temp;
+		
+		// Write your new info to file
+		rewrite_config_file(nodes);
+
+
+
+	}
 	
 	
 	return 0;

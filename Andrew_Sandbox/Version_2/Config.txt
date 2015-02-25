@@ -1,10 +1,8 @@
-Node 1 test_hostname test_port_num 0 0 links
-Node 2 NewHostName12345 NewPortNumber54321 -88 -99 links
-Node 3 NewHostName12345 NewPortNumber54321 -88 -99 links
-Node 4 NewHostName12345 NewPortNumber54321 -88 -99 links
-Node 5 NewHostName12345 NewPortNumber54321 -88 -99 links
-Node 6 NewHostName12345 NewPortNumber54321 -88 -99 links
-Node 7 NewHostName12345 NewPortNumber54321 -88 -99 links
-Node 8 NewHostName12345 NewPortNumber54321 -88 -99 links
-Node 9 NewHostName12345 NewPortNumber54321 -88 -99 links
-Node 10 NewHostName12345 NewPortNumber54321 -88 -99 links
+Node 1 Ubuntu2 111 5256 69 links
+Node 2 Host1 Port1 1324 26 links TuxPoo PortPoo
+Node 3 Ubuntu2 111 0 45 links TuxPoo PortPoo
+Node 4 Ubuntu2 111 0 63 links TuxPoo PortPoo
+Node 5 Ubuntu2 111 0 89 links TuxPoo PortPoo
+Node 6 Ubuntu2 111 659.985 40 links TuxPoo PortPoo
+Node 7 Ubuntu2 111 637.486 15 links TuxPoo PortPoo
+Node 8 Host1 Port1 246.302 61 links TuxPoo PortPoo
