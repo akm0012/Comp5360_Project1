@@ -54,9 +54,9 @@ struct packet_to_send
 {
 	// Header
 	unsigned int sequence_num;	// 4 bytes
-	unsigned short source_address;	// 2 bytes
-	unsigned short previous_hop;	// 2 bytes (source_address of last hop)
-	unsigned short destination_address; // 2 bytes (All 1's means broadcast)
+	unsigned int source_address;	// 4 bytes
+	unsigned int previous_hop;	// 4 bytes (source_address of last hop)
+	unsigned int destination_address; // 4 bytes (All 1's means broadcast)
 	Timestamp time_sent;	// 8 bytes
 	
 	// Payload

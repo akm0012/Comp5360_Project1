@@ -285,6 +285,21 @@ void display_all_node_data(node_info (&nodes)[11])
 	}
 }
 
+/*
+ * Used for debugging.
+ * Displays the contents of the connected_nodes[].
+ */
+void display_all_connected_nodes(int connected_nodes[11])
+{
+	cout << "Connected Nodes: [ ";
+	for (int i = 0; i < 11; i++)
+	{
+		cout << connected_nodes[i] << " ";
+	}
+	
+	cout << "]\n";
+}
+
 
 // Used to determine if we are using IPv4 or IPv6
 void *get_in_addr(struct sockaddr *sa)
@@ -458,6 +473,34 @@ void start_receiving(string port_in)
 }
 
 
+/*
+ * Assumes at 100 meters we have a 0% chance of sending.
+ */
+bool will_packet_send(float distance_apart) {
+
+	bool send = false;
+	
+	float temp = distance_apart * distance_apart;
+	
+	float prob = ((10000 - temp) / 10000) * 10000;
+	
+//	srand(time(0));
+	
+	float chance = (rand() % 10001);
+	
+	if (chance < prob) {
+		send = true;
+	}
+	
+	if (DEBUG) {
+		cout << "There is a " << prob << "/10,000 chance the packet will send.\n";
+		cout << "RNG picked: " << chance << '\n';
+		cout << "Will packet send: " << send << '\n';
+	}
+	
+	return send;
+}
+
 int main(int argc, const char * argv[]) {
 	
 	// RNG - Seeded on System Time
@@ -469,17 +512,30 @@ int main(int argc, const char * argv[]) {
 	*/
 	node_info nodes[11];
 	
+	// This keeps track of which node numbers we are connected to
+	// The index is the node number and '1' means we are connected.
+	// Ex. {0,1,0,0,0,0,0,0,0,0,0} means we are connected to node 1
+	int connected_nodes[] = {0,0,0,0,0,0,0,0,0,0,0};
+	
 	// This node's number
 	int my_node_num;
 	
+	//----- Packet Header Variables -----
 	// This nodes "unique" Address (4 bytes)
 	unsigned int my_address;
-	
-	my_address = rand() % 4000000000;
+	my_address = (rand() % 4000000001) + 1;
 	
 	if (DEBUG) {
 		cout << "my_address: " << my_address << '\n';
 	}
+	
+	// Sequence Counter
+	int sequence_counter = 0;
+	
+	// Platoon Indicator
+	bool platoon_member = false;
+	
+	//----- Packet Header Variables End -----
 	
 	// The node's X and Y coordinate (temp because it is always being written)
 	float x_temp;
@@ -487,6 +543,8 @@ int main(int argc, const char * argv[]) {
 	
 	// The node's velocity along X Axis
 	float speed_meter_per_sec = 30;
+	
+	
 	
 	// Initilaze your node list.
 	init_nodes(nodes);
@@ -602,6 +660,9 @@ int main(int argc, const char * argv[]) {
 			cout << "Car y_temp: " << y_temp << '\n';
 		}
 		
+		// Select some semi-random speed in range of [20, 40]
+		speed_meter_per_sec = (rand() % 21) + 20;
+		
 		// Logic that determines what nodes are my initial links
 		// We are in range if within 100 meters of another node
 		
@@ -616,16 +677,19 @@ int main(int argc, const char * argv[]) {
 					cout << "In Range of Node: " << i << '\n';
 				}
 				
+				// Keep track of what nodes we are connected to.
+				connected_nodes[i] = 1;
+				
 				nodes[my_node_num].number_of_links++; // Don't forget to set this!
 				nodes[my_node_num].connected_hostnames[y] = nodes[i].node_hostname;
 				nodes[my_node_num].connected_ports[y++] = nodes[i].node_port_number;
 				
+				if (DEBUG) {
+					display_all_connected_nodes(connected_nodes);
+				}
+				
 			}
 		}
-		
-//		nodes[my_node_num].number_of_links = 1; // Don't forget to set this!
-//		nodes[my_node_num].connected_hostnames[0] = "ubuntu";
-//		nodes[my_node_num].connected_ports[0] = "10025";
 		
 		// Update the nodes data structure
 		nodes[my_node_num].node_number = my_node_num;
@@ -641,13 +705,13 @@ int main(int argc, const char * argv[]) {
 	
 //	display_all_node_data(nodes);
 	
-	/*
+	
 	// ----- BEGIN MAIN LOOP -----
 	
 	//srand(18);
 	
-	//while (1)
-	//{
+//	while (1)
+//	{
 		usleep(10000); // Sleep for 10 ms (10000 micro)
 		
 		// Update Node Info
@@ -657,9 +721,9 @@ int main(int argc, const char * argv[]) {
 		
 		// Take actions based on new info
 		
-		cout << "Speed: " << speed_meter_per_sec / 100.0 << '\n';
+//		cout << "Speed: " << speed_meter_per_sec / 100.0 << '\n';
 		
-		x_temp = x_temp + (speed_meter_per_sec / 100);
+//		x_temp = x_temp + (speed_meter_per_sec / 100);
 
 		
 		// Write your new info to file
@@ -668,28 +732,80 @@ int main(int argc, const char * argv[]) {
 		// Create the status packet
 		tx_packet packet_out;
 		
-		// Send a braodcast update packet to all attched nodes indicating it's new position and speed
-		for (int i = 0; i < nodes[my_node_num].number_of_links; i++)
-		{
-			// Detetmine the distance from this node to it's neighbor
-			
-			// Calculate "Packet Loss" probability (If > 100 meters, it can't send)
-			
-			// If get a green light, we send. Otherwise don't and move on to next neighbor
-			
-			if (DEBUG) {
-				cout << "Sending packet to: " << nodes[my_node_num].connected_hostnames[i];
-				cout << " on port: " << nodes[my_node_num].connected_ports[i] << '\n';
-			}
-			
-			send_packet(nodes[my_node_num].connected_hostnames[i],
-						nodes[my_node_num].connected_ports[i],
-						packet_out);
+		// Fill the status packet with Updated Data
+		packet_out.sequence_num = sequence_counter++;
+		packet_out.source_address = my_address;
+		packet_out.previous_hop = 0;	// 0 is a reserved address for NOTHING
+		packet_out.destination_address = 0xFFFFFFFF; // All 1's means broadcast
+		packet_out.time_sent = 0; // TODO: Need to find a way to track time in milli seconds or something
+		packet_out.packet_type = LOCATION_PACKET;
+		packet_out.x_position = nodes[my_node_num].node_x_coordinate;
+		packet_out.y_position = nodes[my_node_num].node_y_coordinate;
+		packet_out.x_speed = speed_meter_per_sec;
+		packet_out.platoon_member = platoon_member;
+		
+		if (DEBUG) {
+			cout << "----- Packet to Send -----\n";
+			cout << "packet_out.sequence_num = " << packet_out.sequence_num << '\n';
+			cout << "packet_out.source_address = " << packet_out.source_address << '\n';
+			cout << "packet_out.previous_hop = " << packet_out.previous_hop << '\n';
+			cout << "packet_out.destination_address = " << packet_out.destination_address << '\n';
+			cout << "packet_out.time_sent = " << packet_out.time_sent << '\n';
+			cout << "packet_out.packet_type = " << packet_out.packet_type << '\n';
+			cout << "packet_out.x_position = " << packet_out.x_position << '\n';
+			cout << "packet_out.y_position = " << packet_out.y_position << '\n';
+			cout << "packet_out.x_speed = " << packet_out.x_speed << '\n';
+			cout << "packet_out.platoon_member = " << packet_out.platoon_member << '\n';
 		}
+	
+		int y = 0; // Used to keep track of the Connected hostname / port numbers
+	
+		// Send a braodcast update packet to all attched nodes indicating it's new position and speed
+		for (int i = 1; i < MAX_NUM_OF_NODES + 1; i++)
+		{
+			// If we are connected to node i...
+			if (connected_nodes[i] == 1)
+			{
+				// Detetmine the distance from this node to it's neighbor
+				float distance_apart = 0;
+				distance_apart = nodes[my_node_num].node_x_coordinate - nodes[i].node_x_coordinate;
+				
+				if (DEBUG) {
+					cout << "Distance between nodes " << my_node_num;
+					cout << " and " << i << " is " << distance_apart << '\n';
+				}
+				
+				// Calculate "Packet Loss" probability (If > 100 meters, it can't send)
+				if (will_packet_send(distance_apart))
+				{
+					//TODO: Keep track of a succsessful send
+					
+					// If get a green light, we send. Otherwise don't and move on to next neighbor
+					
+					if (DEBUG) {
+						cout << "Sending packet to: " << nodes[my_node_num].connected_hostnames[y];
+						cout << " on port: " << nodes[my_node_num].connected_ports[y] << '\n';
+					}
+					
+					send_packet(nodes[my_node_num].connected_hostnames[y],
+								nodes[my_node_num].connected_ports[y],
+								packet_out);
+				}
+				
+				else
+				{
+					//TODO: Keep track of the lost packet
+				}
+			
+				// Increase our y counter to prep to send to the next connected node
+				y++;
+			}
+		}
+			
 
 
-	//}
-	*/
+//	}
+	
 	
 	return 0;
 	
