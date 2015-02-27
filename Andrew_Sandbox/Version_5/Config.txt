@@ -1,0 +1,6 @@
+Node 1 host 10025 559 0 links
+Node 2 host 10025 499 5 links host 10025
+Node 3 host 10025 125 0 links
+Node 4 host 10025 69 5 links host 10025
+Node 5 host 10025 187 5 links host 10025
+Node 6 ubuntu 10025 3 5 links host 10025

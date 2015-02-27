@@ -549,6 +549,37 @@ bool will_packet_send(float distance_apart) {
 	return send;
 }
 
+/*
+ * Initalizes the cache table.
+ */
+void init_cache_table(cache_table &cache_in)
+{
+	for (int i = 0; i < MAX_NUM_OF_NODES; i++)
+	{
+		cache_in.source_address[i] = 0;
+		cache_in.highest_sequence_num[i] = -1;
+		cache_in.number_of_broadcasts[i] = -1;
+	}
+}
+
+/*
+ * Used for debugging. Displays the cache table.
+ */
+void display_cache_table(cache_table const &cache_in)
+{
+	cout << "----- Cache Table -----\n";
+	cout << "Index\tSource Address\tHighest Seq. Num.\tNum of Broadcasts\n";
+	
+	for (int i = 0; i < MAX_NUM_OF_NODES; i++)
+	{
+		cout << "[" << i << "]:\t\t" << cache_in.source_address[i];
+		cout << "\t\t" << cache_in.highest_sequence_num[i];
+		cout << "\t\t\t" << cache_in.number_of_broadcasts[i] << '\n';
+	}
+	
+	cout << "----- End Cache Table -----\n";
+}
+
 int main(int argc, const char * argv[]) {
 	
 	// RNG - Seeded on System Time
@@ -563,7 +594,22 @@ int main(int argc, const char * argv[]) {
 	// This keeps track of which node numbers we are connected to
 	// The index is the node number and '1' means we are connected.
 	// Ex. {0,1,0,0,0,0,0,0,0,0,0,0} means we are connected to node 1
-	int connected_nodes[] = {0,0,0,0,0,0,0,0,0,0,0,0};
+	
+//	int connected_nodes[] = {0,0,0,0,0,0,0,0,0,0,0,0};
+
+	// Create and initialicze Connected Nodes
+	int connected_nodes[MAX_NUM_OF_NODES + 1];
+	for (int i = 0; i < MAX_NUM_OF_NODES + 1; i++)
+	{
+		connected_nodes[i] = 0;
+	}
+	
+	// Create and initalize our Cache Table
+	cache_table my_cache;
+	init_cache_table(my_cache);
+	
+	display_cache_table(my_cache);
+	
 	
 	// This node's number
 	int my_node_num;

@@ -81,22 +81,15 @@ struct node_info
 	
 	int number_of_links;
 	
-	string connected_hostnames[11];
-	string connected_ports[11];
+	string connected_hostnames[MAX_NUM_OF_NODES];
+	string connected_ports[MAX_NUM_OF_NODES];
 };
 
 struct cache_table
 {
-	int node_number;
-	string node_hostname;
-	string node_port_number;
-	float node_x_coordinate;
-	int node_y_coordinate;
-	
-	int number_of_links;
-	
-	string connected_hostnames[11];
-	string connected_ports[11];
+	unsigned int source_address[MAX_NUM_OF_NODES];
+	int highest_sequence_num[MAX_NUM_OF_NODES];
+	int number_of_broadcasts[MAX_NUM_OF_NODES];
 };
 
 // Prototypes
