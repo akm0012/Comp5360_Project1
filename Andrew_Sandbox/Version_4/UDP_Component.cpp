@@ -15,6 +15,17 @@
 
 using namespace std;
 
+struct packet_to_send_2
+{
+	unsigned short short_1;
+	unsigned char char_1;
+	unsigned short short_2;
+	//	unsigned short error;
+} __attribute__((__packed__));
+
+typedef struct packet_to_send_2 tx_packet_2;
+
+
 // Used to determine if we are using IPv4 or IPv6
 void *get_in_addr(struct sockaddr *sa)
 {
@@ -27,7 +38,7 @@ void *get_in_addr(struct sockaddr *sa)
 	return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
-void send_packet(string hostname_to_send, string port_to_send, packet_to_send packet_out)
+void send_packet(string hostname_to_send, string port_to_send, tx_packet_2 packet_out)
 {
 	int sockfd;
 	struct addrinfo hints, *servinfo, *p;
@@ -104,8 +115,8 @@ void start_receiving(string port_in)
 	
 	printf("Starting Server... to stop, press 'Ctrl + c'\n");
 	
-	while(1)
-	{
+//	while(1)
+//	{
 		// 1. getaddrinfo
 		if ((status = getaddrinfo(NULL, port_in.c_str(),
 								  &hints, 	// points to a struct with info we have already filled in
@@ -150,8 +161,10 @@ void start_receiving(string port_in)
 		}
 		
 		addr_len = sizeof their_addr;
-		
-		tx_packet packet_in;
+
+	while(1)
+	{
+		tx_packet_2 packet_in;
 		
 		// 4. recvfrom
 		// MAX_PACKET_LEN -1: To make room for '\0'
@@ -182,9 +195,12 @@ void start_receiving(string port_in)
 //			exit(1);
 //		}
 		
-		close(sockfd);
+//		close(sockfd);
+
 	}
+	close(sockfd);
 }
+
 
 
 
@@ -194,21 +210,21 @@ int main(int argc, char *argv[])
 
 	if (strcmp(argv[1], "1")) {
 		// The packet we will send
-		tx_packet packet_out;
+		tx_packet_2 packet_out;
 		
 		// Get the Packet Ready to Send
-//		packet_out.short_1 = htons(0x1234);
-//		packet_out.char_1 = 2;
-//		packet_out.short_2 = htons(10025);
+		packet_out.short_1 = htons(0x1234);
+		packet_out.char_1 = 2;
+		packet_out.short_2 = htons(10025);
 		
 		
-//		if (DEBUG) {
-//			printf("\n----- Packet Out -----\n");
-//			printf("packet_out.short_1: %X\n", ntohs(packet_out.short_1));
-//			printf("packet_out.char_1: %d\n", packet_out.char_1);
-//			printf("packet_out.short_2: %d\n", ntohs(packet_out.short_2));
-//			
-//		}
+		if (DEBUG) {
+			printf("\n----- Packet Out -----\n");
+			printf("packet_out.short_1: %X\n", ntohs(packet_out.short_1));
+			printf("packet_out.char_1: %d\n", packet_out.char_1);
+			printf("packet_out.short_2: %d\n", ntohs(packet_out.short_2));
+			
+		}
 		
 		send_packet("ubuntu", "10025", packet_out);
 	}
