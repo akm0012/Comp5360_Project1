@@ -676,11 +676,9 @@ int main(int argc, const char * argv[]) {
 		// Select semi-random starting point in range of [500, 800]
 		x_temp = (rand() % 301) + 500;
 		
-#ifdef DEBUG
-		// REMOVE - Using to test removal of links
-//		x_temp = 500;
-		cout << "Truck starting X-Coord: " << x_temp << '\n';
-#endif
+		if (DEBUG){
+			cout << "Truck starting X-Coord: " << x_temp << '\n';
+		}
 		
 		// Always start in right lane
 		y_temp = 0;
@@ -739,12 +737,9 @@ int main(int argc, const char * argv[]) {
 
 		} while(!safe_to_enter); // Continue to look for new starting places until a safe spot is found
 		
-#ifdef DEBUG
-		// REMOVE - Using to test removal of links
-//		x_temp = 475;
-		cout << "Car x_temp: " << x_temp << '\n';
-		
-#endif
+		if (DEBUG) {
+			cout << "Car x_temp: " << x_temp << '\n';
+		}
 		
 		// Randomly pick if we are in the right or left lane
 		if ((rand() % 101) < 50)
@@ -785,7 +780,7 @@ int main(int argc, const char * argv[]) {
 				nodes[my_node_num].connected_ports[y++] = nodes[i].node_port_number;
 				
 #ifdef DEBUG
-				display_all_connected_nodes(connected_nodes);
+					display_all_connected_nodes(connected_nodes);
 #endif
 				
 			}
@@ -839,12 +834,6 @@ int main(int argc, const char * argv[]) {
 		// DEBUG ONLY
 		// For debug purposes, I am putting this here so our output ins't so crazy!
 //		if (can_transmit) {
-//		if (nodes[my_node_num].node_number == 1)
-//		{
-//			nodes[my_node_num].node_x_coordinate = nodes[my_node_num].node_x_coordinate + 10;
-//			cout << "New Truck X Pos: " << nodes[my_node_num].node_x_coordinate << '\n';
-//			rewrite_config_file(nodes);
-//		}
 		
 		// TODO: Use the Config file to determine what nodes I can connect to (<100m)
 		
@@ -871,7 +860,7 @@ int main(int argc, const char * argv[]) {
 #ifdef DEBUG
 					cout << "We have come into range of a new node.\n";
 					display_all_connected_nodes(connected_nodes);
-					display_all_node_data(nodes);
+					
 #endif
 					
 					
@@ -913,15 +902,11 @@ int main(int argc, const char * argv[]) {
 					// ports will be unique, that is how we will determine which index needs to be removed
 					// Then we need to shuffle all the entires so they are left justified in the array... Linked List anyone?
 					
-					cout << "Number of links: " << nodes[my_node_num].number_of_links << '\n';
-					display_all_node_data(nodes);
-					
 					for (int j = 0; j < nodes[my_node_num].number_of_links; j++)
 					{
-		
-						if (nodes[my_node_num].connected_ports[j].compare(nodes[i].node_port_number) == 0)
+						if (nodes[my_node_num].connected_ports[j] == nodes[i].node_port_number)
 						{
-#ifdef DEBUG
+#ifdef Debug
 							cout << "We need to remove index " << j << " from the connected_hostnames/ports.\n";
 #endif
 //							nodes[my_node_num].connected_hostnames[j] = "N/A";
@@ -930,19 +915,12 @@ int main(int argc, const char * argv[]) {
 							// Shuffle the rest of the elements over (Overwritting j)
 							while (j < nodes[my_node_num].number_of_links)
 							{
-								// Max number of links is 10 (can not have a link to yourself)
-								// Therefore connected_hostnames/ports[MAX_NUM_OF_NODES] will always be N/A
-								// So we do not need to worry about j+1 pointing out of bounds
-								
 								nodes[my_node_num].connected_hostnames[j] = nodes[my_node_num].connected_hostnames[j+1];
 								nodes[my_node_num].connected_ports[j] = nodes[my_node_num].connected_ports[j+1];
 								j++;
 								
 							}
-							// Decrement our link counter
-							nodes[my_node_num].number_of_links--;
-							//display_all_node_data(nodes);
-							// Break out of FOR loop!!! J is messed up now and will break the FOR loop if you don't.
+							// Break out of FOR loop!!! J is messed up now and will break the FOR loop if you don't. 
 							break;
 						}
 					}
@@ -1103,7 +1081,7 @@ int main(int argc, const char * argv[]) {
 		} // End can_transmit - IF
 
 	} // End While
-//	} // End DEBUG IF Can_Transmit
+//	} // End DEBUG IF
 	
 	// kill threads
 	pthread_exit(NULL);
