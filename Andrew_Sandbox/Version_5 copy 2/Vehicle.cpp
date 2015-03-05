@@ -584,40 +584,6 @@ void display_cache_table(cache_table const &cache_in)
 	cout << "----- End Cache Table -----\n";
 }
 
-/*
- * This is used to determine if we should forward a packet.
- *
- *@param num_of_broadcast The number of times we have already broadcast.
- */
-bool will_rebraodcast(int num_of_broadcast)
-{
-	float percent = 50.0;
-	bool send = false;
-	
-	for (int i = 1; i < num_of_broadcast; i++)
-	{
-		percent = percent / 2;
-	}
-	
-	cout << "RBA: num_of_braodcasts: " << num_of_broadcast << '\n';
-	cout << "RBA: percent: " << percent << '\n';
-	
-	float prob = percent * 100;
-	
-	float chance = (rand() % 10001);
-	
-	if (chance < prob) {
-		send = true;
-	}
-	
-#ifdef DEBUG
-	cout << "RBA: There is a " << prob << "/10,000 chance the packet will send.\n";
-	cout << "RBA: RNG picked: " << chance << '\n';
-	cout << "RBA: Will packet send: " << send << '\n';
-#endif
-
-	return send;
-}
 
 int main(int argc, const char * argv[]) {
 	
@@ -1035,7 +1001,6 @@ int main(int argc, const char * argv[]) {
 			// Make sure I am not the source
 			if (incoming_source_address != my_address)
 			{
-				bool shall_I_forward = true;
 				int cache_index = -1;
 				// Need to find the index for that source number in the cache table
 				for (int i = 0; i < MAX_NUM_OF_NODES; i++)
@@ -1074,150 +1039,123 @@ int main(int argc, const char * argv[]) {
 				
 				// 2. Check Cache Table to see if this is a new message
 				//    Indicated by the seq. # being smaller in cache.
-				//				display_cache_table(my_cache);
-				//				cout << "my_cache.highest_sequence_num[cache_index]: " << my_cache.highest_sequence_num[cache_index] << '\n';
-				//				cout << "packet_in.sequence_num: " << packet_in.sequence_num << '\n';
+//				display_cache_table(my_cache);
+//				cout << "my_cache.highest_sequence_num[cache_index]: " << my_cache.highest_sequence_num[cache_index] << '\n';
+//				cout << "packet_in.sequence_num: " << packet_in.sequence_num << '\n';
 				
-				if (my_cache.highest_sequence_num[cache_index] <= packet_in.sequence_num)
+				if (my_cache.highest_sequence_num[cache_index] < packet_in.sequence_num)
 				{
-					if (my_cache.highest_sequence_num[cache_index] < packet_in.sequence_num)
-					{
-						// This is a new packet
+					// This is a new packet
 #ifdef DEBUG
-						cout << "RBA: This is a new packet. (" << my_cache.highest_sequence_num[cache_index];
-						cout << ") < (" << packet_in.sequence_num << ")\n";
+					cout << "RBA: This is a new packet. (" << my_cache.highest_sequence_num[cache_index];
+					cout << ") < (" << packet_in.sequence_num << ")\n";
 #endif
-						// 3. Update larget seq.# from this source in cache table
-						my_cache.highest_sequence_num[cache_index] = packet_in.sequence_num;
-						
-						// 4. Set # times broadcasted to 1
-						my_cache.number_of_broadcasts[cache_index] = 1;
-						
-						shall_I_forward = true;
-					}
+					// 3. Update larget seq.# from this source in cache table
+					my_cache.highest_sequence_num[cache_index] = packet_in.sequence_num;
 					
-					else if (my_cache.highest_sequence_num[cache_index] == packet_in.sequence_num)
+					// 4. Set # times broadcasted to 1
+					my_cache.number_of_broadcasts[cache_index] = 1;
+					
+					// 5. Forward this packet to all my links, except from where this came from
+					// Using the packet_to_send.previous_hop_port to determine which one NOT to send to.
+					// Used to convert int to string
+					char str[15];
+					// Convert int to string
+					sprintf(str, "%d", packet_in.previous_hop_port);
+					string prev_port_string = string(str);
+					
+					// Now that we have stored the prev port, we can update the last hop and prep the outgoing packet
+					// Update the packet's last hop fields
+					packet_in.previous_hop = my_address;
+					packet_in.previous_hop_port = atoi(nodes[my_node_num].node_port_number.c_str()); // Convert string to int
+					
+					// Now we can iterate through our links and send (if applicable)
+					for (int y = 0; y < nodes[my_node_num].number_of_links; y++)
 					{
-						// This needs to be rebroadcasted depending on the rebroadcast alg.
 #ifdef DEBUG
-						cout << "RBA: This is the SAME packet. (" << my_cache.highest_sequence_num[cache_index];
-						cout << ") == (" << packet_in.sequence_num << ")\n";
+						cout << "RBA: Iterating through links: y = " << y << '\n';
 #endif
 						
-						// Use the number of rebroadcasts to determine if we should re-broadcast
-						shall_I_forward = will_rebraodcast(my_cache.number_of_broadcasts[cache_index]);
-						
-						if (shall_I_forward)
+						if (nodes[my_node_num].connected_ports[y].compare(prev_port_string) == 0)
 						{
-							// Increment our broadcast counter
-							my_cache.number_of_broadcasts[cache_index]++;
+							// Do not send, this is the port where it came from
+#ifdef DEBUG
+							cout << "RBA: Do not send to port: " << prev_port_string << " this is where this packet came from.\n";
+#endif
 						}
 						
-					}
-					
-					if (shall_I_forward)
-					{
-						// 5. Forward this packet to all my links, except from where this came from
-						// Using the packet_to_send.previous_hop_port to determine which one NOT to send to.
-						// Used to convert int to string
-						char str[15];
-						// Convert int to string
-						sprintf(str, "%d", packet_in.previous_hop_port);
-						string prev_port_string = string(str);
-						
-						// Now that we have stored the prev port, we can update the last hop and prep the outgoing packet
-						// Update the packet's last hop fields
-						packet_in.previous_hop = my_address;
-						packet_in.previous_hop_port = atoi(nodes[my_node_num].node_port_number.c_str()); // Convert string to int
-						
-						// Now we can iterate through our links and send (if applicable)
-						for (int y = 0; y < nodes[my_node_num].number_of_links; y++)
+						else
 						{
+							// Send packet to that port and hostname
 #ifdef DEBUG
-							cout << "RBA: Iterating through links: y = " << y << '\n';
+							cout << "RBA: Send to port: " << nodes[my_node_num].connected_ports[y];
+							cout << " at address: " << nodes[my_node_num].connected_hostnames[y] << '\n';
 #endif
 							
-							if (nodes[my_node_num].connected_ports[y].compare(prev_port_string) == 0)
+							// Need to find which node number this is so we can determine the distance for the packet loss algorithim.
+							
+							int temp_node_num = 0; // 0 is an invalid node number
+							
+							for (int k=1; k < MAX_NUM_OF_NODES + 1; k++)
 							{
-								// Do not send, this is the port where it came from
+								// If this is a connected node and the port number lines up with the port we want to send to
+								if (connected_nodes[k] == 1
+									&& (nodes[k].node_port_number).compare(nodes[my_node_num].connected_ports[y]) == 0)
+								{
+									// We know the node number is k
+									temp_node_num = k;
+									
 #ifdef DEBUG
-								cout << "RBA: Do not send to port: " << prev_port_string << " this is where this packet came from.\n";
+									cout << "RBA: Node Number: " << k << " corresponds to port: " << nodes[my_node_num].connected_ports[y] << '\n';
 #endif
+								}
+							}
+							
+							// Detetmine the distance from this node to it's neighbor
+							float distance_apart = 0;
+							distance_apart = nodes[my_node_num].node_x_coordinate - nodes[temp_node_num].node_x_coordinate;
+							
+#ifdef DEBUG
+							cout << "RBA: Distance between nodes " << my_node_num;
+							cout << " and " << temp_node_num << " is " << distance_apart << '\n';
+#endif
+							
+							// Calculate "Packet Loss" probability (If > 100 meters, it can't send)
+							if (will_packet_send(distance_apart))
+							{
+								//TODO: Keep track of a succsessful send
+								
+								// If get a green light, we send. Otherwise don't and move on to next neighbor
+								
+#ifdef DEBUG
+								cout << "RBA: Sending packet to: " << nodes[my_node_num].connected_hostnames[y];
+								cout << " on port: " << nodes[my_node_num].connected_ports[y] << '\n';
+#endif
+								
+								send_packet(nodes[my_node_num].connected_hostnames[y],
+											nodes[my_node_num].connected_ports[y],
+											packet_in);
 							}
 							
 							else
 							{
-								// Send packet to that port and hostname
-#ifdef DEBUG
-								cout << "RBA: Send to port: " << nodes[my_node_num].connected_ports[y];
-								cout << " at address: " << nodes[my_node_num].connected_hostnames[y] << '\n';
-#endif
-								
-								// Need to find which node number this is so we can determine the distance for the packet loss algorithim.
-								
-								int temp_node_num = 0; // 0 is an invalid node number
-								
-								for (int k=1; k < MAX_NUM_OF_NODES + 1; k++)
-								{
-									// If this is a connected node and the port number lines up with the port we want to send to
-									if (connected_nodes[k] == 1
-										&& (nodes[k].node_port_number).compare(nodes[my_node_num].connected_ports[y]) == 0)
-									{
-										// We know the node number is k
-										temp_node_num = k;
-										
-#ifdef DEBUG
-										cout << "RBA: Node Number: " << k << " corresponds to port: " << nodes[my_node_num].connected_ports[y] << '\n';
-#endif
-									}
-								}
-								
-								// Detetmine the distance from this node to it's neighbor
-								float distance_apart = 0;
-								distance_apart = nodes[my_node_num].node_x_coordinate - nodes[temp_node_num].node_x_coordinate;
-								
-#ifdef DEBUG
-								cout << "RBA: Distance between nodes " << my_node_num;
-								cout << " and " << temp_node_num << " is " << distance_apart << '\n';
-#endif
-								
-								// Calculate "Packet Loss" probability (If > 100 meters, it can't send)
-								if (will_packet_send(distance_apart))
-								{
-									//TODO: Keep track of a succsessful send
-									
-									// If get a green light, we send. Otherwise don't and move on to next neighbor
-									
-#ifdef DEBUG
-									cout << "RBA: Sending packet to: " << nodes[my_node_num].connected_hostnames[y];
-									cout << " on port: " << nodes[my_node_num].connected_ports[y] << '\n';
-#endif
-									
-									send_packet(nodes[my_node_num].connected_hostnames[y],
-												nodes[my_node_num].connected_ports[y],
-												packet_in);
-								}
-								
-								else
-								{
-									//TODO: Keep track of the lost packet
-								}
+								//TODO: Keep track of the lost packet
 							}
-						} // End FOR loop where we send packets.
-					} // End If for Shall_I_Forward
+						}
+					} // End FOR loop where we send packets.
 					
 				} // End IF checking if this is a new packet
 				
-//				else if (my_cache.highest_sequence_num[cache_index] == packet_in.sequence_num)
-//				{
-//					//TODO: I think this behaviour can be accomplished in the above if statement
-//					// I have seen this packet and need to look at # times broadcasted to determine probability of resending.
-//					
-//					// Resend based on probability
-//					
-//					// Update # times broadcasted
-//					
-//				}
+				else if (my_cache.highest_sequence_num[cache_index] == packet_in.sequence_num)
+				{
+					//TODO: I think this behaviour can be accomplished in the above if statement
+					// I have seen this packet and need to look at # times broadcasted to determine probability of resending.
+					
+					// Resend based on probability
+					
+					// Update # times broadcasted
+					
+				}
 				
 				else
 				{
