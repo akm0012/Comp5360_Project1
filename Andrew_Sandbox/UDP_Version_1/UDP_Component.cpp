@@ -1,13 +1,3 @@
-/*
- *	Comp5360: Lab 3
- *
- *	File: UDP_Component.cpp
- *	Author: Andrew K. Marshall (akm0012)
- *	Group ID: 15
- *	Date: 2/25/15
- *	Version: 0.0
- *	Version Notes: Testing
- */
 
 #include <stdio.h>
 #include <stdlib.h>

@@ -11,6 +11,7 @@
 #include <math.h>
 #include <time.h>
 #include <iomanip>
+#include <signal.h>
 
 #include "Resources.h"
 
@@ -25,6 +26,11 @@ deque<tx_packet> Buffer;
 // The boolean used to determine if it has been 10ms
 bool can_transmit = false;
 pthread_mutex_t tx_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+/* Global Variables - Global so we can use them in out Ctrl-C Interrupt */
+node_info nodes[MAX_NUM_OF_NODES + 1];
+int connected_nodes[MAX_NUM_OF_NODES + 1];
+cache_table my_cache;
 
 /* Functions */
 
@@ -82,8 +88,9 @@ void read_node_info(node_info (&nodes)[MAX_NUM_OF_NODES + 1]) {
 					
 					// Check to see if "links" is the next word
 					if (next_word.compare("links") == 0) {
-						
-						cout << "Links attached to Node " << node_num << ": ";
+#ifdef DEBUG
+						//cout << "Links attached to Node " << node_num << ": ";
+#endif
 					}
 					
 					else {
@@ -105,12 +112,13 @@ void read_node_info(node_info (&nodes)[MAX_NUM_OF_NODES + 1]) {
 						// We are past the links keyword, start reading in connected hostnames and port numbers
 						
 						nodes[node_num].connected_hostnames[link_counter - 1] = next_word;
-						
-						cout << nodes[node_num].connected_hostnames[link_counter - 1] << "(";
-						
+#ifdef DEBUG
+	//					cout << nodes[node_num].connected_hostnames[link_counter - 1] << "(";
+#endif
 						myfile >> nodes[node_num].connected_ports[link_counter - 1];
-						
-						cout << nodes[node_num].connected_ports[link_counter - 1] << ") ";
+#ifdef DEBUG
+	//					cout << nodes[node_num].connected_ports[link_counter - 1] << ") ";
+#endif
 					}
 					
 					
@@ -120,8 +128,9 @@ void read_node_info(node_info (&nodes)[MAX_NUM_OF_NODES + 1]) {
 						break;
 					}
 				}
-				
-				cout << '\n';
+#ifdef DEBUG
+	//			cout << '\n';
+#endif
 			}
 			
 		}
@@ -284,6 +293,7 @@ void init_nodes(node_info (&nodes)[MAX_NUM_OF_NODES + 1])
  */
 void display_all_node_data(node_info (&nodes)[MAX_NUM_OF_NODES + 1])
 {
+	cout << "----- All Node Data -----\n";
 	for (int i = 0; i < MAX_NUM_OF_NODES + 1; i++)
 	{
 		cout << "nodes[" << i << "].node_number: "<< nodes[i].node_number << '\n';
@@ -307,6 +317,7 @@ void display_all_node_data(node_info (&nodes)[MAX_NUM_OF_NODES + 1])
  */
 void display_all_connected_nodes(int connected_nodes[MAX_NUM_OF_NODES + 1])
 {
+	cout << "----- Connected Nodes -----\n";
 	cout << "Connected Nodes: [ ";
 	for (int i = 0; i < MAX_NUM_OF_NODES + 1; i++)
 	{
@@ -619,16 +630,61 @@ bool will_rebraodcast(int num_of_broadcast)
 	return send;
 }
 
+/*
+ * Returns the distance traveled after some 
+ * time measured in micro seconds. 
+ */
+float get_distance_traveled(float speed_meter_per_sec_in, float time_micro_s)
+{
+	return speed_meter_per_sec_in * (1 / 1000000) * time_micro_s;
+}
+
+/*
+ * Sets your new location given your old one.
+ */
+void set_new_location(float &x_coord_in, float speed_meter_per_sec_in, float time_micro_s)
+{
+	x_coord_in = x_coord_in + get_distance_traveled(speed_meter_per_sec_in, time_micro_s);
+}
+
+/*****************************************************************************\
+ * This function is called whenever the associated signal (event) occurs       *
+ * This function will handle the event                                         *
+ \*****************************************************************************/
+static void signalHandler(int signo){
+	// signal(signo,SIG_IGN);
+	signal(SIGINT,signalHandler); // needed on some systems
+	
+	cout<< "\n---------- Ctrl-C ----------\n";
+	
+	display_all_node_data(nodes);
+	
+	display_cache_table(my_cache);
+	
+	display_all_connected_nodes(connected_nodes);
+	
+	exit(0);
+	
+	
+	return;
+}
+
 int main(int argc, const char * argv[]) {
 	
+#ifdef DEBUG
+	// Used for Debugging - Catches Ctrl-C
+	signal(SIGINT, signalHandler); // Prepare code to handle a Ctrl + c interrupt
+#endif
+	
 	// RNG - Seeded on System Time
-	srand(time(0));
+	//srand(time(0));
+	srand(1); // Change back to time(0), using '1' for repeatable debugging.
 	
 	/*	This holds all the Node info.
 	*	NOTE: For ease of use the index will match the Node Number
 	*	So nodes [0] will remain empty.
 	*/
-	node_info nodes[MAX_NUM_OF_NODES + 1];
+//GLOBAL	node_info nodes[MAX_NUM_OF_NODES + 1];
 	
 	// This keeps track of which node numbers we are connected to
 	// The index is the node number and '1' means we are connected.
@@ -637,19 +693,19 @@ int main(int argc, const char * argv[]) {
 //	int connected_nodes[] = {0,0,0,0,0,0,0,0,0,0,0,0};
 
 	// Create and initialicze Connected Nodes
-	int connected_nodes[MAX_NUM_OF_NODES + 1];
+//GLOBAL	int connected_nodes[MAX_NUM_OF_NODES + 1];
 	for (int i = 0; i < MAX_NUM_OF_NODES + 1; i++)
 	{
 		connected_nodes[i] = 0;
 	}
 	
 	// Create and initalize our Cache Table
-	cache_table my_cache;
+//GLOBAL	cache_table my_cache;
 	init_cache_table(my_cache);
 	
 #ifdef DEBUG
 	
-	display_cache_table(my_cache);
+	//display_cache_table(my_cache);
 	
 #endif
 	
@@ -703,9 +759,9 @@ int main(int argc, const char * argv[]) {
 	// You are the first node to join and are thereby the Truck
 	if (my_node_num == 1)
 	{
-		if (DEBUG) {
-			cout << "I am a Truck!\n";
-		}
+#ifdef DEBUG
+		cout << "I am a Truck!\n";
+#endif
 		
 		read_node_info(nodes);
 		
@@ -742,6 +798,7 @@ int main(int argc, const char * argv[]) {
 
 	}
 	
+	// You are a car
 	else
 	{
 		// Read in node info to determine starting X and Y coord.
@@ -761,8 +818,8 @@ int main(int argc, const char * argv[]) {
 			// Check to make sure we are not within 15 meters of any other node
 			for (int i = 1; i < MAX_NUM_OF_NODES + 1; i++)
 			{
-				if ((x_temp + 15 > nodes[i].node_x_coordinate && x_temp < nodes[i].node_x_coordinate)
-					|| (x_temp - 15 < nodes[i].node_x_coordinate && x_temp > nodes[i].node_x_coordinate))
+				if ((x_temp + 15 >= nodes[i].node_x_coordinate && x_temp <= nodes[i].node_x_coordinate)
+					|| (x_temp - 15 <= nodes[i].node_x_coordinate && x_temp >= nodes[i].node_x_coordinate))
 				{
 					if (DEBUG) {
 						cout << "UN-SAFE SPOT SELECTED: " << x_temp << '\n';
@@ -936,7 +993,7 @@ int main(int argc, const char * argv[]) {
 			// Else we are not in range of that node. - Checks if we need to disconnect.
 			else {
 #ifdef DEBUG
-				cout << "We are not in range of Node: " << i << '\n';
+				//cout << "We are not in range of Node: " << i << '\n';
 #endif
 				// If we were connected previously, we need to disconnect
 				if (connected_nodes[i] == 1)
@@ -1275,7 +1332,6 @@ int main(int argc, const char * argv[]) {
 			packet_out.y_position = nodes[my_node_num].node_y_coordinate;
 			packet_out.x_speed = speed_meter_per_sec;
 			packet_out.platoon_member = platoon_member;
-			//TODO: Add # of platoon members
 			
 #ifdef DEBUG
 //			cout << "----- Packet to Send -----\n";
@@ -1346,7 +1402,7 @@ int main(int argc, const char * argv[]) {
 		} // End can_transmit - IF
 
 	} // End While
-	} // End DEBUG IF Can_Transmit
+		} // End DEBUG IF Can_Transmit
 
 	// kill threads
 	pthread_exit(NULL);
