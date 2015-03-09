@@ -39,6 +39,9 @@ typedef double Timestamp;
 #define LEFT_LANE 5
 #define RIGHT_LANE 0
 
+#define PASSING_SPEED_INCREASE 5 // 5 m/s
+#define PASSING_BUFFER 20
+
 #define MAX_NUM_OF_NODES 11
 
 #define REQUEST_DENIED 0
