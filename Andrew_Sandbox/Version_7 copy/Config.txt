@@ -1,0 +1,3 @@
+Node 1 ubuntu 10010 582.392 0 links ubuntu 10021
+Node 2 ubuntu 10021 701 0 links ubuntu 10010
+Node 3 ubuntu 10023 1000 0 links

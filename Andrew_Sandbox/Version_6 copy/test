@@ -1,0 +1,432 @@
+my_address: 1804289384
+File Found!
+Number of lines in file: 4
+You are Node number: 5
+Node Number: 5
+UN-SAFE SPOT SELECTED: 406
+Too close to Node: 2 (406)
+UN-SAFE SPOT SELECTED: 105
+Too close to Node: 3 (105)
+UN-SAFE SPOT SELECTED: 487
+Too close to Node: 4 (487)
+UN-SAFE SPOT SELECTED: 113
+Too close to Node: 3 (105)
+Car x_temp: 52
+Car y_temp: 0
+In Range of Node: 3
+----- Connected Nodes -----
+Connected Nodes: [ 0 0 0 1 0 0 0 0 0 0 0 0 ]
+DEBUG: Port number: 10022
+Starting Server... to stop, press 'Ctrl + c'
+Binding complete, waiting to recvfrom...
+In Range of Node: 3
+We are already connected to node 3. Not adding to connected nodes.
+----- Connected Nodes -----
+Connected Nodes: [ 0 0 0 1 0 0 0 0 0 0 0 0 ]
+Distance between nodes 5 and 3 is -53
+There is a 7191/10,000 chance the packet will send.
+RNG picked: 7004
+Will packet send: 1
+Sending packet to: ubuntu on port: 10022
+Packet Received! It contained: 47 bytes.
+Pushing packet to end of buffer.
+Sent 47 bytes to ubuntu
+In Range of Node: 3
+We are already connected to node 3. Not adding to connected nodes.
+----- Connected Nodes -----
+Connected Nodes: [ 0 0 0 1 0 0 0 0 0 0 0 0 ]
+Grabbing packet from front of queue.
+Buffer Size: 1
+RBA: Incoming Source Address of packet: 1804289384
+Received a packet from myself... Dropping packet.
+Done servicing popped packet.
+Buffer Size: 0
+Distance between nodes 5 and 3 is -53
+There is a 7191/10,000 chance the packet will send.
+RNG picked: 2469
+Will packet send: 1
+Sending packet to: ubuntu on port: 10022
+Packet Received! It contained: 47 bytes.
+Pushing packet to end of buffer.
+Sent 47 bytes to ubuntu
+In Range of Node: 3
+We are already connected to node 3. Not adding to connected nodes.
+----- Connected Nodes -----
+Connected Nodes: [ 0 0 0 1 0 0 0 0 0 0 0 0 ]
+Grabbing packet from front of queue.
+Buffer Size: 1
+RBA: Incoming Source Address of packet: 1804289384
+Received a packet from myself... Dropping packet.
+Done servicing popped packet.
+Buffer Size: 0
+Distance between nodes 5 and 3 is -53
+There is a 7191/10,000 chance the packet will send.
+RNG picked: 9853
+Will packet send: 0
+In Range of Node: 3
+We are already connected to node 3. Not adding to connected nodes.
+----- Connected Nodes -----
+Connected Nodes: [ 0 0 0 1 0 0 0 0 0 0 0 0 ]
+Distance between nodes 5 and 3 is -53
+There is a 7191/10,000 chance the packet will send.
+RNG picked: 4992
+Will packet send: 1
+Sending packet to: ubuntu on port: 10022
+Packet Received! It contained: 47 bytes.
+Pushing packet to end of buffer.
+Sent 47 bytes to ubuntu
+
+---------- Ctrl-C ----------
+----- All Node Data -----
+nodes[0].node_number: -1
+nodes[0].node_hostname: N/A
+nodes[0].node_port_number: N/A
+nodes[0].node_x_coordinate: -1000
+nodes[0].node_y_coordinate: -1000
+nodes[0].number_of_links: 0
+nodes[0].connected_hostnames[0]: N/A
+nodes[0].connected_ports[0]: N/A
+nodes[0].connected_hostnames[1]: N/A
+nodes[0].connected_ports[1]: N/A
+nodes[0].connected_hostnames[2]: N/A
+nodes[0].connected_ports[2]: N/A
+nodes[0].connected_hostnames[3]: N/A
+nodes[0].connected_ports[3]: N/A
+nodes[0].connected_hostnames[4]: N/A
+nodes[0].connected_ports[4]: N/A
+nodes[0].connected_hostnames[5]: N/A
+nodes[0].connected_ports[5]: N/A
+nodes[0].connected_hostnames[6]: N/A
+nodes[0].connected_ports[6]: N/A
+nodes[0].connected_hostnames[7]: N/A
+nodes[0].connected_ports[7]: N/A
+nodes[0].connected_hostnames[8]: N/A
+nodes[0].connected_ports[8]: N/A
+nodes[0].connected_hostnames[9]: N/A
+nodes[0].connected_ports[9]: N/A
+nodes[0].connected_hostnames[10]: N/A
+nodes[0].connected_ports[10]: N/A
+nodes[1].node_number: 1
+nodes[1].node_hostname: ubuntu
+nodes[1].node_port_number: 10020
+nodes[1].node_x_coordinate: 763
+nodes[1].node_y_coordinate: 0
+nodes[1].number_of_links: 0
+nodes[1].connected_hostnames[0]: N/A
+nodes[1].connected_ports[0]: N/A
+nodes[1].connected_hostnames[1]: N/A
+nodes[1].connected_ports[1]: N/A
+nodes[1].connected_hostnames[2]: N/A
+nodes[1].connected_ports[2]: N/A
+nodes[1].connected_hostnames[3]: N/A
+nodes[1].connected_ports[3]: N/A
+nodes[1].connected_hostnames[4]: N/A
+nodes[1].connected_ports[4]: N/A
+nodes[1].connected_hostnames[5]: N/A
+nodes[1].connected_ports[5]: N/A
+nodes[1].connected_hostnames[6]: N/A
+nodes[1].connected_ports[6]: N/A
+nodes[1].connected_hostnames[7]: N/A
+nodes[1].connected_ports[7]: N/A
+nodes[1].connected_hostnames[8]: N/A
+nodes[1].connected_ports[8]: N/A
+nodes[1].connected_hostnames[9]: N/A
+nodes[1].connected_ports[9]: N/A
+nodes[1].connected_hostnames[10]: N/A
+nodes[1].connected_ports[10]: N/A
+nodes[2].node_number: 2
+nodes[2].node_hostname: ubuntu
+nodes[2].node_port_number: 10022
+nodes[2].node_x_coordinate: 406
+nodes[2].node_y_coordinate: 5
+nodes[2].number_of_links: 0
+nodes[2].connected_hostnames[0]: N/A
+nodes[2].connected_ports[0]: N/A
+nodes[2].connected_hostnames[1]: N/A
+nodes[2].connected_ports[1]: N/A
+nodes[2].connected_hostnames[2]: N/A
+nodes[2].connected_ports[2]: N/A
+nodes[2].connected_hostnames[3]: N/A
+nodes[2].connected_ports[3]: N/A
+nodes[2].connected_hostnames[4]: N/A
+nodes[2].connected_ports[4]: N/A
+nodes[2].connected_hostnames[5]: N/A
+nodes[2].connected_ports[5]: N/A
+nodes[2].connected_hostnames[6]: N/A
+nodes[2].connected_ports[6]: N/A
+nodes[2].connected_hostnames[7]: N/A
+nodes[2].connected_ports[7]: N/A
+nodes[2].connected_hostnames[8]: N/A
+nodes[2].connected_ports[8]: N/A
+nodes[2].connected_hostnames[9]: N/A
+nodes[2].connected_ports[9]: N/A
+nodes[2].connected_hostnames[10]: N/A
+nodes[2].connected_ports[10]: N/A
+nodes[3].node_number: 3
+nodes[3].node_hostname: ubuntu
+nodes[3].node_port_number: 10022
+nodes[3].node_x_coordinate: 105
+nodes[3].node_y_coordinate: 0
+nodes[3].number_of_links: 0
+nodes[3].connected_hostnames[0]: N/A
+nodes[3].connected_ports[0]: N/A
+nodes[3].connected_hostnames[1]: N/A
+nodes[3].connected_ports[1]: N/A
+nodes[3].connected_hostnames[2]: N/A
+nodes[3].connected_ports[2]: N/A
+nodes[3].connected_hostnames[3]: N/A
+nodes[3].connected_ports[3]: N/A
+nodes[3].connected_hostnames[4]: N/A
+nodes[3].connected_ports[4]: N/A
+nodes[3].connected_hostnames[5]: N/A
+nodes[3].connected_ports[5]: N/A
+nodes[3].connected_hostnames[6]: N/A
+nodes[3].connected_ports[6]: N/A
+nodes[3].connected_hostnames[7]: N/A
+nodes[3].connected_ports[7]: N/A
+nodes[3].connected_hostnames[8]: N/A
+nodes[3].connected_ports[8]: N/A
+nodes[3].connected_hostnames[9]: N/A
+nodes[3].connected_ports[9]: N/A
+nodes[3].connected_hostnames[10]: N/A
+nodes[3].connected_ports[10]: N/A
+nodes[4].node_number: 4
+nodes[4].node_hostname: ubuntu
+nodes[4].node_port_number: 10022
+nodes[4].node_x_coordinate: 487
+nodes[4].node_y_coordinate: 5
+nodes[4].number_of_links: 1
+nodes[4].connected_hostnames[0]: ubuntu
+nodes[4].connected_ports[0]: 10022
+nodes[4].connected_hostnames[1]: N/A
+nodes[4].connected_ports[1]: N/A
+nodes[4].connected_hostnames[2]: N/A
+nodes[4].connected_ports[2]: N/A
+nodes[4].connected_hostnames[3]: N/A
+nodes[4].connected_ports[3]: N/A
+nodes[4].connected_hostnames[4]: N/A
+nodes[4].connected_ports[4]: N/A
+nodes[4].connected_hostnames[5]: N/A
+nodes[4].connected_ports[5]: N/A
+nodes[4].connected_hostnames[6]: N/A
+nodes[4].connected_ports[6]: N/A
+nodes[4].connected_hostnames[7]: N/A
+nodes[4].connected_ports[7]: N/A
+nodes[4].connected_hostnames[8]: N/A
+nodes[4].connected_ports[8]: N/A
+nodes[4].connected_hostnames[9]: N/A
+nodes[4].connected_ports[9]: N/A
+nodes[4].connected_hostnames[10]: N/A
+nodes[4].connected_ports[10]: N/A
+nodes[5].node_number: 5
+nodes[5].node_hostname: ubuntu
+nodes[5].node_port_number: 10022
+nodes[5].node_x_coordinate: 52
+nodes[5].node_y_coordinate: 0
+nodes[5].number_of_links: 1
+nodes[5].connected_hostnames[0]: ubuntu
+nodes[5].connected_ports[0]: 10022
+nodes[5].connected_hostnames[1]: N/A
+nodes[5].connected_ports[1]: N/A
+nodes[5].connected_hostnames[2]: N/A
+nodes[5].connected_ports[2]: N/A
+nodes[5].connected_hostnames[3]: N/A
+nodes[5].connected_ports[3]: N/A
+nodes[5].connected_hostnames[4]: N/A
+nodes[5].connected_ports[4]: N/A
+nodes[5].connected_hostnames[5]: N/A
+nodes[5].connected_ports[5]: N/A
+nodes[5].connected_hostnames[6]: N/A
+nodes[5].connected_ports[6]: N/A
+nodes[5].connected_hostnames[7]: N/A
+nodes[5].connected_ports[7]: N/A
+nodes[5].connected_hostnames[8]: N/A
+nodes[5].connected_ports[8]: N/A
+nodes[5].connected_hostnames[9]: N/A
+nodes[5].connected_ports[9]: N/A
+nodes[5].connected_hostnames[10]: N/A
+nodes[5].connected_ports[10]: N/A
+nodes[6].node_number: -1
+nodes[6].node_hostname: N/A
+nodes[6].node_port_number: N/A
+nodes[6].node_x_coordinate: -1000
+nodes[6].node_y_coordinate: -1000
+nodes[6].number_of_links: 0
+nodes[6].connected_hostnames[0]: N/A
+nodes[6].connected_ports[0]: N/A
+nodes[6].connected_hostnames[1]: N/A
+nodes[6].connected_ports[1]: N/A
+nodes[6].connected_hostnames[2]: N/A
+nodes[6].connected_ports[2]: N/A
+nodes[6].connected_hostnames[3]: N/A
+nodes[6].connected_ports[3]: N/A
+nodes[6].connected_hostnames[4]: N/A
+nodes[6].connected_ports[4]: N/A
+nodes[6].connected_hostnames[5]: N/A
+nodes[6].connected_ports[5]: N/A
+nodes[6].connected_hostnames[6]: N/A
+nodes[6].connected_ports[6]: N/A
+nodes[6].connected_hostnames[7]: N/A
+nodes[6].connected_ports[7]: N/A
+nodes[6].connected_hostnames[8]: N/A
+nodes[6].connected_ports[8]: N/A
+nodes[6].connected_hostnames[9]: N/A
+nodes[6].connected_ports[9]: N/A
+nodes[6].connected_hostnames[10]: N/A
+nodes[6].connected_ports[10]: N/A
+nodes[7].node_number: -1
+nodes[7].node_hostname: N/A
+nodes[7].node_port_number: N/A
+nodes[7].node_x_coordinate: -1000
+nodes[7].node_y_coordinate: -1000
+nodes[7].number_of_links: 0
+nodes[7].connected_hostnames[0]: N/A
+nodes[7].connected_ports[0]: N/A
+nodes[7].connected_hostnames[1]: N/A
+nodes[7].connected_ports[1]: N/A
+nodes[7].connected_hostnames[2]: N/A
+nodes[7].connected_ports[2]: N/A
+nodes[7].connected_hostnames[3]: N/A
+nodes[7].connected_ports[3]: N/A
+nodes[7].connected_hostnames[4]: N/A
+nodes[7].connected_ports[4]: N/A
+nodes[7].connected_hostnames[5]: N/A
+nodes[7].connected_ports[5]: N/A
+nodes[7].connected_hostnames[6]: N/A
+nodes[7].connected_ports[6]: N/A
+nodes[7].connected_hostnames[7]: N/A
+nodes[7].connected_ports[7]: N/A
+nodes[7].connected_hostnames[8]: N/A
+nodes[7].connected_ports[8]: N/A
+nodes[7].connected_hostnames[9]: N/A
+nodes[7].connected_ports[9]: N/A
+nodes[7].connected_hostnames[10]: N/A
+nodes[7].connected_ports[10]: N/A
+nodes[8].node_number: -1
+nodes[8].node_hostname: N/A
+nodes[8].node_port_number: N/A
+nodes[8].node_x_coordinate: -1000
+nodes[8].node_y_coordinate: -1000
+nodes[8].number_of_links: 0
+nodes[8].connected_hostnames[0]: N/A
+nodes[8].connected_ports[0]: N/A
+nodes[8].connected_hostnames[1]: N/A
+nodes[8].connected_ports[1]: N/A
+nodes[8].connected_hostnames[2]: N/A
+nodes[8].connected_ports[2]: N/A
+nodes[8].connected_hostnames[3]: N/A
+nodes[8].connected_ports[3]: N/A
+nodes[8].connected_hostnames[4]: N/A
+nodes[8].connected_ports[4]: N/A
+nodes[8].connected_hostnames[5]: N/A
+nodes[8].connected_ports[5]: N/A
+nodes[8].connected_hostnames[6]: N/A
+nodes[8].connected_ports[6]: N/A
+nodes[8].connected_hostnames[7]: N/A
+nodes[8].connected_ports[7]: N/A
+nodes[8].connected_hostnames[8]: N/A
+nodes[8].connected_ports[8]: N/A
+nodes[8].connected_hostnames[9]: N/A
+nodes[8].connected_ports[9]: N/A
+nodes[8].connected_hostnames[10]: N/A
+nodes[8].connected_ports[10]: N/A
+nodes[9].node_number: -1
+nodes[9].node_hostname: N/A
+nodes[9].node_port_number: N/A
+nodes[9].node_x_coordinate: -1000
+nodes[9].node_y_coordinate: -1000
+nodes[9].number_of_links: 0
+nodes[9].connected_hostnames[0]: N/A
+nodes[9].connected_ports[0]: N/A
+nodes[9].connected_hostnames[1]: N/A
+nodes[9].connected_ports[1]: N/A
+nodes[9].connected_hostnames[2]: N/A
+nodes[9].connected_ports[2]: N/A
+nodes[9].connected_hostnames[3]: N/A
+nodes[9].connected_ports[3]: N/A
+nodes[9].connected_hostnames[4]: N/A
+nodes[9].connected_ports[4]: N/A
+nodes[9].connected_hostnames[5]: N/A
+nodes[9].connected_ports[5]: N/A
+nodes[9].connected_hostnames[6]: N/A
+nodes[9].connected_ports[6]: N/A
+nodes[9].connected_hostnames[7]: N/A
+nodes[9].connected_ports[7]: N/A
+nodes[9].connected_hostnames[8]: N/A
+nodes[9].connected_ports[8]: N/A
+nodes[9].connected_hostnames[9]: N/A
+nodes[9].connected_ports[9]: N/A
+nodes[9].connected_hostnames[10]: N/A
+nodes[9].connected_ports[10]: N/A
+nodes[10].node_number: -1
+nodes[10].node_hostname: N/A
+nodes[10].node_port_number: N/A
+nodes[10].node_x_coordinate: -1000
+nodes[10].node_y_coordinate: -1000
+nodes[10].number_of_links: 0
+nodes[10].connected_hostnames[0]: N/A
+nodes[10].connected_ports[0]: N/A
+nodes[10].connected_hostnames[1]: N/A
+nodes[10].connected_ports[1]: N/A
+nodes[10].connected_hostnames[2]: N/A
+nodes[10].connected_ports[2]: N/A
+nodes[10].connected_hostnames[3]: N/A
+nodes[10].connected_ports[3]: N/A
+nodes[10].connected_hostnames[4]: N/A
+nodes[10].connected_ports[4]: N/A
+nodes[10].connected_hostnames[5]: N/A
+nodes[10].connected_ports[5]: N/A
+nodes[10].connected_hostnames[6]: N/A
+nodes[10].connected_ports[6]: N/A
+nodes[10].connected_hostnames[7]: N/A
+nodes[10].connected_ports[7]: N/A
+nodes[10].connected_hostnames[8]: N/A
+nodes[10].connected_ports[8]: N/A
+nodes[10].connected_hostnames[9]: N/A
+nodes[10].connected_ports[9]: N/A
+nodes[10].connected_hostnames[10]: N/A
+nodes[10].connected_ports[10]: N/A
+nodes[11].node_number: -1
+nodes[11].node_hostname: N/A
+nodes[11].node_port_number: N/A
+nodes[11].node_x_coordinate: -1000
+nodes[11].node_y_coordinate: -1000
+nodes[11].number_of_links: 0
+nodes[11].connected_hostnames[0]: N/A
+nodes[11].connected_ports[0]: N/A
+nodes[11].connected_hostnames[1]: N/A
+nodes[11].connected_ports[1]: N/A
+nodes[11].connected_hostnames[2]: N/A
+nodes[11].connected_ports[2]: N/A
+nodes[11].connected_hostnames[3]: N/A
+nodes[11].connected_ports[3]: N/A
+nodes[11].connected_hostnames[4]: N/A
+nodes[11].connected_ports[4]: N/A
+nodes[11].connected_hostnames[5]: N/A
+nodes[11].connected_ports[5]: N/A
+nodes[11].connected_hostnames[6]: N/A
+nodes[11].connected_ports[6]: N/A
+nodes[11].connected_hostnames[7]: N/A
+nodes[11].connected_ports[7]: N/A
+nodes[11].connected_hostnames[8]: N/A
+nodes[11].connected_ports[8]: N/A
+nodes[11].connected_hostnames[9]: N/A
+nodes[11].connected_ports[9]: N/A
+nodes[11].connected_hostnames[10]: N/A
+nodes[11].connected_ports[10]: N/A
+----- Cache Table -----
+Index	Source Address	Highest Seq. Num.	Num of Broadcasts
+[0]:		0		0			0
+[1]:		0		0			0
+[2]:		0		0			0
+[3]:		0		0			0
+[4]:		0		0			0
+[5]:		0		0			0
+[6]:		0		0			0
+[7]:		0		0			0
+[8]:		0		0			0
+[9]:		0		0			0
+[10]:		0		0			0
+----- End Cache Table -----
+----- Connected Nodes -----
+Connected Nodes: [ 0 0 0 1 0 0 0 0 0 0 0 0 ]
