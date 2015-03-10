@@ -958,24 +958,24 @@ int main(int argc, const char * argv[]) {
 		// Always start in right lane
 		y_temp = RIGHT_LANE;
 		
-		// Select some semi-random speed in range of [20, 35]
-		speed_meter_per_sec = (rand() % 16) + 20;
+		// Select some semi-random speed in range of [20, 30]
+		speed_meter_per_sec = (rand() % 11) + 20;
 		starting_speed_meter_per_sec = speed_meter_per_sec;
 		
 		
 		
 		
-//		
-//		
-//		// -- DEBUG CODE -- REMOVE ME
-//		cout << "DEBUG: Truck 1\n";
-//		y_temp = RIGHT_LANE;
-//		speed_meter_per_sec = 5;
-//		starting_speed_meter_per_sec = speed_meter_per_sec;
-//		x_temp = 200;
-//		
-//		
-//		
+		
+		
+		// -- DEBUG CODE -- REMOVE ME
+		cout << "DEBUG: Truck 1\n";
+		y_temp = RIGHT_LANE;
+		speed_meter_per_sec = 22;
+		starting_speed_meter_per_sec = speed_meter_per_sec;
+		x_temp = 1054;
+		
+		
+		
 		
 		
 		
@@ -1055,9 +1055,9 @@ int main(int argc, const char * argv[]) {
 		cout << "Car y_temp: " << y_temp << '\n';
 #endif
 		
-		// Select some semi-random speed in range of [25, 35]
+		// Select some semi-random speed in range of [25, 40]
 		//		speed_meter_per_sec = (rand() % 21) + 20;
-		speed_meter_per_sec = (rand() % 11) + 25;
+		speed_meter_per_sec = (rand() % 16) + 25;
 		starting_speed_meter_per_sec = speed_meter_per_sec;
 		
 		
@@ -1066,27 +1066,37 @@ int main(int argc, const char * argv[]) {
 		
 		
 		
-//		// -- DEBUG CODE -- REMOVE ME
-//		
-//		// Car 1
-//		if (my_node_num == 2)
-//		{
-//			cout << "DEBUG: Car 2\n";
-//			y_temp = RIGHT_LANE;
-//			speed_meter_per_sec = 10;
-//			starting_speed_meter_per_sec = speed_meter_per_sec;
-//			x_temp = 100;
-//		}
-//		
-//		// Car 2
-//		if (my_node_num == 3)
-//		{
-//			cout << "DEBUG: Car 3\n";
-//			y_temp = LEFT_LANE;
-//			speed_meter_per_sec = 10;
-//			starting_speed_meter_per_sec = speed_meter_per_sec;
-//			x_temp = 50;
-//		}
+		// -- DEBUG CODE -- REMOVE ME
+		
+		// Car 1
+		if (my_node_num == 2)
+		{
+			cout << "DEBUG: Car 2\n";
+			y_temp = RIGHT_LANE;
+			speed_meter_per_sec = 30;
+			starting_speed_meter_per_sec = speed_meter_per_sec;
+			x_temp = 758;
+		}
+		
+		// Car 2
+		if (my_node_num == 3)
+		{
+			cout << "DEBUG: Car 3\n";
+			y_temp = LEFT_LANE;
+			speed_meter_per_sec = 38;
+			starting_speed_meter_per_sec = speed_meter_per_sec;
+			x_temp = 486;
+		}
+		
+		// Car 3
+		if (my_node_num == 4)
+		{
+			cout << "DEBUG: Car 4\n";
+			y_temp = RIGHT_LANE;
+			speed_meter_per_sec = 28;
+			starting_speed_meter_per_sec = speed_meter_per_sec;
+			x_temp = 470;
+		}
 		
 		
 		
@@ -1454,7 +1464,8 @@ int main(int argc, const char * argv[]) {
 						&& packet_in.x_position > x_temp // Makes sure this car is ahead, not behind
 						&& packet_in.y_position == y_temp // In same lane
 						&& packet_in.x_speed <= speed_meter_per_sec // <= so this will keep being executed until LEFT LANE clear
-						&& packet_in.platoon_member == false) // Not a car train
+						&& packet_in.platoon_member == false // Not a car train
+						&& platoon_member == false)
 					{
 #ifdef DEBUG_ROAD_RULES
 						cout << "-- ROAD RULES: Danger Close Car ahead! --\n";
@@ -1591,7 +1602,7 @@ int main(int argc, const char * argv[]) {
 					// AND IS in a Platoon
 					else if (packet_in.x_position <= x_temp + DANGER_CLOSE // Car ahead is less than DANGER_CLOSE
 							 && packet_in.x_position > x_temp // Makes sure this car is ahead, not behind
-							 && packet_in.y_position == y_temp // In same lane
+							 && packet_in.y_position != y_temp // In different
 							 && packet_in.x_speed <= speed_meter_per_sec // <= so this will keep being executed until LEFT LANE clear
 							 && packet_in.platoon_member == true // Car ahead is in a platoon
 							 && platoon_member == false) // I am not in a platoon
@@ -1755,7 +1766,7 @@ int main(int argc, const char * argv[]) {
 						{
 #ifdef DEBUG_PLATOON
 							cout << "--- Platoon: Platoon CLOSED.\n";
-							cout << "--- Sending Join info.\n";
+							cout << "--- Sending Wait info.\n";
 #endif
 
 							// Send a packet to the car telling him to try again
@@ -1832,7 +1843,8 @@ int main(int argc, const char * argv[]) {
 				// Else if I am a car and received a packet from the truck saying I can join and it's for me
 				else if (packet_in.packet_type == PLATOON_JOIN_INFO_PACKET
 						 && my_node_num != 1
-						 && packet_in.destination_address == my_address)
+						 && packet_in.destination_address == my_address
+						 && platoon_member == false) // And I am not already in the platoon
 				{
 #ifdef DEBUG_PLATOON
 					cout << "--- Platoon: Received confirmation I can join platoon.\n";
@@ -2009,15 +2021,17 @@ int main(int argc, const char * argv[]) {
 			
 			
 #ifdef DEBUG_ROAD_RULES
-			//			if (fmod(x_temp,  1) == 0)
-			//			{
-//			if (my_node_num != 1)
+//			if (fmod(x_temp, 1) == 0)
 //			{
-				cout << "Current X Location: " << x_temp << '\n';
-				cout << "Current Y Location: " << y_temp << '\n';
-				cout << "Current Speed: " << speed_meter_per_sec << '\n';
-//			}
-			
+//			if (my_node_num != 1)
+			//			{
+			cout << "Current X Location: " << x_temp << '\n';
+			cout << "Current Y Location: " << y_temp << '\n';
+			cout << "Current Speed: " << speed_meter_per_sec << '\n';
+			cout << "Buffer Size: " << Buffer.size() << '\n';
+			cout << "Platoon Member?: " << platoon_member << '\n';
+			//			}
+		
 			////				cout << "Buffer Size: " << Buffer.size() << '\n';
 			//			}
 			
