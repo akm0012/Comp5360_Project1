@@ -64,7 +64,7 @@ void read_node_info(node_info (&nodes)[MAX_NUM_OF_NODES + 1]) {
 			if (word.compare("Node") == 0)
 			{
 #ifdef DEBUG
-					//					cout << "Debug: NODE KEYWORD FOUND\n";
+				//					cout << "Debug: NODE KEYWORD FOUND\n";
 #endif
 				
 				myfile >> node_num;
@@ -119,7 +119,7 @@ void read_node_info(node_info (&nodes)[MAX_NUM_OF_NODES + 1]) {
 						nodes[node_num].number_of_links = link_counter;
 						
 #ifdef DEBUG
-							// cout << "Number of Links found: " << nodes[node_num].number_of_links << '\n';
+						// cout << "Number of Links found: " << nodes[node_num].number_of_links << '\n';
 #endif
 						
 						// We are past the links keyword, start reading in connected hostnames and port numbers
@@ -711,11 +711,11 @@ bool check_if_lane_clear(int lane_in, const node_info (&nodes)[MAX_NUM_OF_NODES 
 	// We are checking if the Right Lane is clear
 	if (lane_in == RIGHT_LANE)
 	{
-		// Check to make sure we are not within 15 meters of any other node in the right lane
+		// Check to make sure we are not within PASSING_BUFFER meters of any other node in the right lane
 		for (int i = 1; i < MAX_NUM_OF_NODES + 1; i++)
 		{
 			if ((((x_temp + PASSING_BUFFER >= nodes[i].node_x_coordinate && x_temp <= nodes[i].node_x_coordinate)
-				|| (x_temp - PASSING_BUFFER <= nodes[i].node_x_coordinate && x_temp >= nodes[i].node_x_coordinate)))
+				  || (x_temp - PASSING_BUFFER <= nodes[i].node_x_coordinate && x_temp >= nodes[i].node_x_coordinate)))
 				&& (nodes[i].node_y_coordinate == RIGHT_LANE))
 			{
 #ifdef DEBUG
@@ -762,7 +762,7 @@ void rewrite_config_file(string lineToUpdate)
 {
 	// Evan Magic
 	unique_ptr<char[]> lineArray(new char[lineToUpdate.length() + 1]);
-    strncpy(lineArray.get(), lineToUpdate.c_str(), lineToUpdate.length() + 1);
+	strncpy(lineArray.get(), lineToUpdate.c_str(), lineToUpdate.length() + 1);
 	
 	string writeThis;
 	
@@ -859,6 +859,9 @@ int main(int argc, const char * argv[]) {
 	// Platoon Indicator
 	bool platoon_member = false;
 	
+	// Used to indicate I should maintain some speed other than my original
+	bool holding_pattern = false;
+	
 	//----- Packet Header Variables End -----
 	
 	// The node's X and Y coordinate (temp because it is always being written)
@@ -898,7 +901,7 @@ int main(int argc, const char * argv[]) {
 #ifdef DEBUG_ROAD_RULES
 	cout << "my_address: " << my_address << '\n';
 #endif
-
+	
 	
 	// You are the first node to join and are thereby the Truck
 	if (my_node_num == 1)
@@ -937,7 +940,7 @@ int main(int argc, const char * argv[]) {
 		y_temp = RIGHT_LANE;
 		speed_meter_per_sec = 1;
 		starting_speed_meter_per_sec = speed_meter_per_sec;
-		x_temp = 550;
+		x_temp = 20;
 		
 		
 		
@@ -1028,26 +1031,29 @@ int main(int argc, const char * argv[]) {
 		
 		
 		
+		
+		
+		
 		// -- DEBUG CODE -- REMOVE ME
 		
 		// Car 1
 		if (my_node_num == 2)
 		{
 			cout << "DEBUG: Car 2\n";
-			y_temp = RIGHT_LANE;
-			speed_meter_per_sec = 10;
+			y_temp = LEFT_LANE;
+			speed_meter_per_sec = 2;
 			starting_speed_meter_per_sec = speed_meter_per_sec;
-			x_temp = 375;
+			x_temp = 8;
 		}
 		
 		// Car 2
 		if (my_node_num == 3)
 		{
 			cout << "DEBUG: Car 3\n";
-			y_temp = RIGHT_LANE;
-			speed_meter_per_sec = 0;
+			y_temp = LEFT_LANE;
+			speed_meter_per_sec = 4;
 			starting_speed_meter_per_sec = speed_meter_per_sec;
-			x_temp = 1000;
+			x_temp = 4;
 		}
 		
 		
@@ -1070,8 +1076,8 @@ int main(int argc, const char * argv[]) {
 		for (int i = 1; i < MAX_NUM_OF_NODES + 1; i++)
 		{
 			if (((x_temp + 100 >= nodes[i].node_x_coordinate && x_temp <= nodes[i].node_x_coordinate)
-				|| (x_temp - 100 <= nodes[i].node_x_coordinate && x_temp >= nodes[i].node_x_coordinate))
-					&& (i != my_node_num)) // Makes sure we can't create a link to ourselves.
+				 || (x_temp - 100 <= nodes[i].node_x_coordinate && x_temp >= nodes[i].node_x_coordinate))
+				&& (i != my_node_num)) // Makes sure we can't create a link to ourselves.
 			{
 #ifdef DEBUG
 				cout << "In Range of Node: " << i << '\n';
@@ -1121,9 +1127,9 @@ int main(int argc, const char * argv[]) {
 	}
 	
 	// Create thread to listen for incoming packets
-//	int micro_s = 10000; // Set the timer to 10 milliseconds
+	//	int micro_s = 10000; // Set the timer to 10 milliseconds
 	int micro_s = 100000; // Set the timer to 100 milliseconds
-//	int micro_s = 1000000; // Set the timer to 1 second
+	//	int micro_s = 1000000; // Set the timer to 1 second
 	rc = pthread_create(&timer_thread, NULL, timer, &micro_s);
 	// check for creation errors
 	if (rc)
@@ -1134,7 +1140,7 @@ int main(int argc, const char * argv[]) {
 	
 	
 	// Refresh our nodes data structure
-//	read_node_info(nodes);
+	//	read_node_info(nodes);
 	
 	// ----- BEGIN MAIN LOOP -----
 	
@@ -1143,7 +1149,7 @@ int main(int argc, const char * argv[]) {
 		
 		// DEBUG ONLY
 		// For debug purposes, I am putting this here so our output ins't so crazy!
-//		if (can_transmit) {
+		//		if (can_transmit) {
 		//		if (nodes[my_node_num].node_number == 1)
 		//		{
 		//			nodes[my_node_num].node_x_coordinate = nodes[my_node_num].node_x_coordinate + 10;
@@ -1430,10 +1436,12 @@ int main(int argc, const char * argv[]) {
 							// Check if the LEFT LANE is clear
 							if (check_if_lane_clear(LEFT_LANE, nodes, my_node_num))
 							{
+								// Leave a holding pattern
+								holding_pattern = false;
 #ifdef DEBUG_ROAD_RULES
 								cout << "-- ROAD RULES: Left Lane is clear. Moving into Left Lane to pass.\n";
 								cout << "Buffer Size: " << Buffer.size() << '\n';
-
+								
 #endif
 								// Move into the left lane
 								y_temp = LEFT_LANE;
@@ -1442,7 +1450,15 @@ int main(int argc, const char * argv[]) {
 							// Left Lane is not clear, match ahead car's speed until it is clear
 							else
 							{
+								// Enter a holding pattern
+								holding_pattern = true;
+								
+								// Match car's speed
 								speed_meter_per_sec = packet_in.x_speed;
+								
+								// Might have to teleport to exactly 20 m away so this case keeps calling
+								// POTENTIAL PROBLEM: This should fix the issue when a car matches the speed of the car ahead, but does so where he stays more than
+								// danger close distance away.
 #ifdef DEBUG_ROAD_RULES
 								cout << "-- ROAD RULES: Left Lane is NOT Clear, matching speed.\n";
 								cout << "New Speed: " << speed_meter_per_sec << '\n';
@@ -1451,34 +1467,61 @@ int main(int argc, const char * argv[]) {
 								
 							}
 						}
+						
+						// Else if I am in the LEFT LANE and Danger Close
+						else if (y_temp == LEFT_LANE)
+						{
+							// Enter a holding pattern
+							holding_pattern = true;
+							
+							// Match speed of car ahead of me
+							speed_meter_per_sec = packet_in.x_speed;
+							
+							//TODO: May need to teleport
+#ifdef DEBUG_ROAD_RULES
+							cout << "-- ROAD RULES: DANGER CLOSE In LEFT Lane. --\n";
+							cout << "Matching Speed.\n";
+							cout << "Speed: " << speed_meter_per_sec << '\n';
+#endif
+							
+						}
+						
 					}
 					
-					// Else if I am in the LEFT LANE and Danger Close
-//					else if (0)
-//					{
-//						
-//					}
+					
 					
 					// Else there is not a car Danger Close ahead and should make sure I am going my starting speed
-					// This should fix the issue when a car matches the speed of the car ahead, but does so where he stays more than
+					// POTENTIAL PROBLEM: This should fix the issue when a car matches the speed of the car ahead, but does so where he stays more than
 					// danger close distance away.
 					else
 					{
 #ifdef DEBUG_ROAD_RULES
 						//cout << "- ROAD RULES: Nothing Danger Close ahead. -\n";
 #endif
+						// If I am not in a holding_pattern
+						
 						// Make sure I am at my starting speed
-						speed_meter_per_sec = starting_speed_meter_per_sec;
+						//speed_meter_per_sec = starting_speed_meter_per_sec;
+						
+						
 					}
 					
+				} // End IF - Checks if it is a location packet
+				
+				// Else if we received a Request to Enter a Platoon Packet and I am the Truck
+				else if (packet_in.packet_type == REQUEST_PACKET && my_node_num == 1)
+				{
+					
 				}
+				
+				
 				
 				
 				
 			}
 			
 			
-				
+			
 			
 			
 			//		cout << "Speed: " << speed_meter_per_sec / 100.0 << '\n';
@@ -1494,8 +1537,8 @@ int main(int argc, const char * argv[]) {
 #endif
 		} // End Popping and processing 1 packet from buffer
 		
-			
-			
+		
+		
 		// ----- General Road Rules -----
 		// These are rules that cars should try to follow even if they are not in range of another car
 		// Right now this is really just checking to make sure we don't stay in the LEFT LANE if we start there.
@@ -1508,8 +1551,8 @@ int main(int argc, const char * argv[]) {
 #endif
 			// Check to see if right lane is clear (20 meter buffer)
 			
-//			cout << "Is RIGHT LANE CLEAR: " << check_if_lane_clear(RIGHT_LANE, nodes, my_node_num) << '\n';
-//			cout << "X_Coor: " << x_temp << '\n';
+			//			cout << "Is RIGHT LANE CLEAR: " << check_if_lane_clear(RIGHT_LANE, nodes, my_node_num) << '\n';
+			//			cout << "X_Coor: " << x_temp << '\n';
 			
 			if (check_if_lane_clear(RIGHT_LANE, nodes, my_node_num))
 			{
@@ -1519,9 +1562,9 @@ int main(int argc, const char * argv[]) {
 #ifdef DEBUG_ROAD_RULES
 				cout << "- Road Rules: Moving to RIGHT LANE. -\n";
 				//cout << "Buffer Size: " << Buffer.size() << '\n';
-
+				
 #endif
-
+				
 				// Resume starting speed (may already be at starting speed)
 				speed_meter_per_sec = starting_speed_meter_per_sec;
 #ifdef DEBUG_ROAD_RULES
@@ -1533,12 +1576,13 @@ int main(int argc, const char * argv[]) {
 			else
 			{
 				// If we have not yet increased our speed... increase it. (Makes sure we don't keep going faster and faster)
-				if (speed_meter_per_sec == starting_speed_meter_per_sec)
+				// AND we are not in a holding pattern (waiting for some car to move)
+				if (speed_meter_per_sec <= starting_speed_meter_per_sec && !holding_pattern)
 				{
 					// Increase speed by PASSING_SPEED_INCREASE
 					speed_meter_per_sec = speed_meter_per_sec + PASSING_SPEED_INCREASE;
 #ifdef DEBUG_ROAD_RULES
-				//	cout << "- Passing Speed set to: " << speed_meter_per_sec << " -\n";
+					cout << "- Passing Speed set to: " << speed_meter_per_sec << " -\n";
 #endif
 				}
 			}
@@ -1546,7 +1590,7 @@ int main(int argc, const char * argv[]) {
 		
 		// ERROR: Doing this in a while(1) loop is messing things up. Can only write to file every so often.
 		// Update the text file
-//		rewrite_config_file(nodes);
+		//		rewrite_config_file(nodes);
 		
 		
 		// Write your new info (generated form both Config logic and packet buffer logic) to file
@@ -1571,16 +1615,16 @@ int main(int argc, const char * argv[]) {
 			
 			
 #ifdef DEBUG_ROAD_RULES
-//			if (fmod(x_temp,  1) == 0)
-//			{
-				cout << "Current X Location: " << x_temp << '\n';
-				cout << "Current Y Location: " << y_temp << '\n';
-////				cout << "Buffer Size: " << Buffer.size() << '\n';
-//			}
+			//			if (fmod(x_temp,  1) == 0)
+			//			{
+			cout << "Current X Location: " << x_temp << '\n';
+			cout << "Current Y Location: " << y_temp << '\n';
+			////				cout << "Buffer Size: " << Buffer.size() << '\n';
+			//			}
 			
 #endif
-//			// Update the text file - read will over write any changes we have made to 'Nodes'
-//			rewrite_config_file(nodes);
+			//			// Update the text file - read will over write any changes we have made to 'Nodes'
+			//			rewrite_config_file(nodes);
 			
 			// Refresh our nodes data structure
 			read_node_info(nodes);
@@ -1729,15 +1773,15 @@ int main(int argc, const char * argv[]) {
 			
 			// Create the string we are going to put into the config.txt file
 			new_line = "Node " + to_string(my_node_num) + " " + nodes[my_node_num].node_hostname
-				+ " " + nodes[my_node_num].node_port_number + " " + to_string(x_temp) + " " + to_string(y_temp)
-				+ " links";
+			+ " " + nodes[my_node_num].node_port_number + " " + to_string(x_temp) + " " + to_string(y_temp)
+			+ " links";
 			
 			// Add all the links to the new_line
 			for (int i = 0; i < nodes[my_node_num].number_of_links; i++)
 			{
 				
 				new_line = new_line + " " + nodes[my_node_num].connected_hostnames[i] + " "
-					+ nodes[my_node_num].connected_ports[i];
+				+ nodes[my_node_num].connected_ports[i];
 				
 			}
 			
@@ -1748,7 +1792,7 @@ int main(int argc, const char * argv[]) {
 			cout << new_line;
 #endif
 			// Update the text file - To update the links we may have created or deleted
-//			rewrite_config_file(new_line);
+			//			rewrite_config_file(new_line);
 			
 			// Create the status packet
 			tx_packet packet_out;
@@ -1841,8 +1885,8 @@ int main(int argc, const char * argv[]) {
 		} // End can_transmit - IF
 		
 	} // End While
-//		} // End DEBUG IF Can_Transmit
-
+	//		} // End DEBUG IF Can_Transmit
+	
 	// kill threads
 	pthread_exit(NULL);
 	
