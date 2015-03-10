@@ -19,6 +19,7 @@
 
 #define DEBUG 1
 #define DEBUG_ROAD_RULES 1
+#define DEBUG_PLATOON 1
 #undef DEBUG // Turn off DEBUG
 
 using namespace std;
@@ -676,6 +677,23 @@ void set_new_location(float &x_coord_in, float speed_meter_per_sec_in, float tim
 	//	cout << "DEBUG: x_coord_in NEW: " << x_coord_in << '\n';
 }
 
+/*
+ * Finds the distance I should be from the lead truck
+ */
+float find_distance_from_truck(int num_in_train)
+{
+	// Truck counts as 1
+	// 25 + ((num_in_train -2) * 20)
+	
+	// See My Notes for more details on how this works
+	
+	cout << "DEBUG: num_in_train: " << num_in_train << '\n';
+	
+	cout << "DEBUG: Returning: " << (PLATOON_SPACE_BUFFER + TRUCK_LENGTH) + ((num_in_train - 2) * (PLATOON_SPACE_BUFFER + CAR_LENGTH)) << '\n';
+	
+	return (PLATOON_SPACE_BUFFER + TRUCK_LENGTH) + ((num_in_train - 2) * (PLATOON_SPACE_BUFFER + CAR_LENGTH));
+}
+
 /*****************************************************************************\
  * This function is called whenever the associated signal (event) occurs       *
  * This function will handle the event                                         *
@@ -804,6 +822,7 @@ void rewrite_config_file(string lineToUpdate)
 	outStream.close();
 }
 
+
 int main(int argc, const char * argv[]) {
 	
 	// Used for Debugging - Catches Ctrl-C
@@ -848,7 +867,8 @@ int main(int argc, const char * argv[]) {
 	//----- Packet Header Variables -----
 	
 	// REMOVE - USED TO MAKE BEHAVIOUR REPEATABLE
-	srand(5); // Change back to time(0), using '1' for repeatable debugging.
+//	srand(5); // Change back to time(0), using '1' for repeatable debugging.
+	srand(time(0));
 	
 	// Unique Address ID
 	unsigned int my_address;
@@ -861,6 +881,15 @@ int main(int argc, const char * argv[]) {
 	
 	// Used to indicate I should maintain some speed other than my original
 	bool holding_pattern = false;
+	
+	// Used to indicate if the platoon is open
+	bool platoon_open = true;
+	
+	// Used to keep track of the last car that asked to join the platoon (in case the packet is lost)
+	unsigned int address_of_last_car_to_try_and_join_platoon = 0;
+	
+	// Keeps track of how many cars are in the platoon
+	int platoon_member_count = 0; // If we are truck this will go to 1
 	
 	//----- Packet Header Variables End -----
 	
@@ -910,6 +939,10 @@ int main(int argc, const char * argv[]) {
 		cout << "I am a Truck!\n";
 #endif
 		
+		// Indicate we have started a platoon.
+		platoon_member_count = 1;
+		platoon_member = true;
+		
 		// Don't think we need this... Investigate later
 		read_node_info(nodes);
 		
@@ -928,22 +961,21 @@ int main(int argc, const char * argv[]) {
 		// Select some semi-random speed in range of [20, 35]
 		speed_meter_per_sec = (rand() % 16) + 20;
 		starting_speed_meter_per_sec = speed_meter_per_sec;
-		//		speed_meter_per_sec = 20;
 		
 		
 		
 		
-		
-		
-		// -- DEBUG CODE -- REMOVE ME
-		cout << "DEBUG: Truck 1\n";
-		y_temp = RIGHT_LANE;
-		speed_meter_per_sec = 1;
-		starting_speed_meter_per_sec = speed_meter_per_sec;
-		x_temp = 20;
-		
-		
-		
+//		
+//		
+//		// -- DEBUG CODE -- REMOVE ME
+//		cout << "DEBUG: Truck 1\n";
+//		y_temp = RIGHT_LANE;
+//		speed_meter_per_sec = 5;
+//		starting_speed_meter_per_sec = speed_meter_per_sec;
+//		x_temp = 200;
+//		
+//		
+//		
 		
 		
 		
@@ -1034,27 +1066,27 @@ int main(int argc, const char * argv[]) {
 		
 		
 		
-		// -- DEBUG CODE -- REMOVE ME
-		
-		// Car 1
-		if (my_node_num == 2)
-		{
-			cout << "DEBUG: Car 2\n";
-			y_temp = LEFT_LANE;
-			speed_meter_per_sec = 2;
-			starting_speed_meter_per_sec = speed_meter_per_sec;
-			x_temp = 8;
-		}
-		
-		// Car 2
-		if (my_node_num == 3)
-		{
-			cout << "DEBUG: Car 3\n";
-			y_temp = LEFT_LANE;
-			speed_meter_per_sec = 4;
-			starting_speed_meter_per_sec = speed_meter_per_sec;
-			x_temp = 4;
-		}
+//		// -- DEBUG CODE -- REMOVE ME
+//		
+//		// Car 1
+//		if (my_node_num == 2)
+//		{
+//			cout << "DEBUG: Car 2\n";
+//			y_temp = RIGHT_LANE;
+//			speed_meter_per_sec = 10;
+//			starting_speed_meter_per_sec = speed_meter_per_sec;
+//			x_temp = 100;
+//		}
+//		
+//		// Car 2
+//		if (my_node_num == 3)
+//		{
+//			cout << "DEBUG: Car 3\n";
+//			y_temp = LEFT_LANE;
+//			speed_meter_per_sec = 10;
+//			starting_speed_meter_per_sec = speed_meter_per_sec;
+//			x_temp = 50;
+//		}
 		
 		
 		
@@ -1488,7 +1520,142 @@ int main(int argc, const char * argv[]) {
 						
 					}
 					
+					// IF I get a packet indicating a car is less than 20 meters ahead (same lane) AND is going slower than me
+					// AND IS in a Platoon
+					else if (packet_in.x_position <= x_temp + DANGER_CLOSE // Car ahead is less than DANGER_CLOSE
+						&& packet_in.x_position > x_temp // Makes sure this car is ahead, not behind
+						&& packet_in.y_position == y_temp // In same lane
+						&& packet_in.x_speed <= speed_meter_per_sec // <= so this will keep being executed until LEFT LANE clear
+						&& packet_in.platoon_member == true // Car ahead is in a platoon
+						&& platoon_member == false) // I am not in a platoon
+					{
+#ifdef DEBUG_PLATOON
+						cout << "--- Platoon: I am in range of a platoon. Sending Request to Join the Platoon.\n";
+#endif
+						// Create the packet
+						tx_packet packet_out;
+						
+						// Fill the packet with Platoon Joining Info
+						packet_out.sequence_num = sequence_counter++;
+						packet_out.source_address = my_address;
+						packet_out.previous_hop = my_address;	// Indicate the sender (me) was the last hop
+						packet_out.previous_hop_port = atoi(nodes[my_node_num].node_port_number.c_str()); // Convert string to int
+						packet_out.destination_address = 0xFFFFFFFF; // Send to all cars as I don't know the trucks address yet
+						packet_out.time_sent = 0; // TODO: Need to find a way to track time in milli seconds or something
+						packet_out.packet_type = REQUEST_PACKET;
+						packet_out.x_position = x_temp;
+						packet_out.y_position = y_temp;
+						packet_out.x_speed = speed_meter_per_sec;
+						packet_out.platoon_member = platoon_member;
+						packet_out.number_of_platoon_members = platoon_member_count;
+						packet_out.message = REQUEST_ENTER_PLATOON;
+						
+						// ---- Packet Sending Start ----
+						
+						int y = 0; // Used to keep track of the Connected hostname / port numbers
+						
+						// Send the packet to all connected nodes
+						for (int i = 1; i < MAX_NUM_OF_NODES + 1; i++)
+						{
+							// If we are connected to node i...
+							if (connected_nodes[i] == 1)
+							{
+#ifdef DEBUG_PLATOON
+								cout << "Sending packet to: " << nodes[my_node_num].connected_hostnames[y];
+								cout << " on port: " << nodes[my_node_num].connected_ports[y] << '\n';
+#endif
+								
+								send_packet(nodes[my_node_num].connected_hostnames[y],
+											nodes[my_node_num].connected_ports[y],
+											packet_out);
+								
+								// Increase our y counter to prep to send to the next connected node
+								y++;
+							}
+						}
+						
+						// ---- Packet Sending End ----
+
+						
+						// Match speed of the platoon so I don't run into them, but don't want to pass either
+						// Enter a holding pattern
+						holding_pattern = true;
+						
+						// Match car's speed
+						speed_meter_per_sec = packet_in.x_speed;
 					
+					
+					}
+					
+					// IF I get a packet indicating a car is less than 20 meters ahead (DIFFERENT lane) AND is going slower than me
+					// AND IS in a Platoon
+					else if (packet_in.x_position <= x_temp + DANGER_CLOSE // Car ahead is less than DANGER_CLOSE
+							 && packet_in.x_position > x_temp // Makes sure this car is ahead, not behind
+							 && packet_in.y_position == y_temp // In same lane
+							 && packet_in.x_speed <= speed_meter_per_sec // <= so this will keep being executed until LEFT LANE clear
+							 && packet_in.platoon_member == true // Car ahead is in a platoon
+							 && platoon_member == false) // I am not in a platoon
+					{
+#ifdef DEBUG_PLATOON
+						cout << "--- Platoon: I am in range of a platoon. Sending Request to Join the Platoon.\n";
+#endif
+						// Create the packet
+						tx_packet packet_out;
+						
+						// Fill the packet with Platoon Joining Info
+						packet_out.sequence_num = sequence_counter++;
+						packet_out.source_address = my_address;
+						packet_out.previous_hop = my_address;	// Indicate the sender (me) was the last hop
+						packet_out.previous_hop_port = atoi(nodes[my_node_num].node_port_number.c_str()); // Convert string to int
+						packet_out.destination_address = 0xFFFFFFFF; // Send to all cars as I don't know the trucks address yet
+						packet_out.time_sent = 0; // TODO: Need to find a way to track time in milli seconds or something
+						packet_out.packet_type = REQUEST_PACKET;
+						packet_out.x_position = x_temp;
+						packet_out.y_position = y_temp;
+						packet_out.x_speed = speed_meter_per_sec;
+						packet_out.platoon_member = platoon_member;
+						packet_out.number_of_platoon_members = platoon_member_count;
+						packet_out.message = REQUEST_ENTER_PLATOON;
+						
+						// ---- Packet Sending Start ----
+						
+						int y = 0; // Used to keep track of the Connected hostname / port numbers
+						
+						// Send the packet to all connected nodes
+						for (int i = 1; i < MAX_NUM_OF_NODES + 1; i++)
+						{
+							// If we are connected to node i...
+							if (connected_nodes[i] == 1)
+							{
+#ifdef DEBUG_PLATOON
+								cout << "Sending packet to: " << nodes[my_node_num].connected_hostnames[y];
+								cout << " on port: " << nodes[my_node_num].connected_ports[y] << '\n';
+#endif
+								
+								send_packet(nodes[my_node_num].connected_hostnames[y],
+											nodes[my_node_num].connected_ports[y],
+											packet_out);
+								
+								// Increase our y counter to prep to send to the next connected node
+								y++;
+							}
+						}
+						
+						// ---- Packet Sending End ----
+						
+						
+						// Match speed of the platoon so I don't run into them, but don't want to pass either
+						// Enter a holding pattern
+						holding_pattern = true;
+						
+						// Match car's speed
+						speed_meter_per_sec = packet_in.x_speed;
+						
+						//TODO: CRAZY logic that makes us slow down move into right lane and join the platoon
+						
+						
+					}
+
 					
 					// Else there is not a car Danger Close ahead and should make sure I am going my starting speed
 					// POTENTIAL PROBLEM: This should fix the issue when a car matches the speed of the car ahead, but does so where he stays more than
@@ -1511,7 +1678,234 @@ int main(int argc, const char * argv[]) {
 				// Else if we received a Request to Enter a Platoon Packet and I am the Truck
 				else if (packet_in.packet_type == REQUEST_PACKET && my_node_num == 1)
 				{
+					// Some car wants to join our platoon (not the same car asking again, if packet was lost)
+					if (packet_in.message == REQUEST_ENTER_PLATOON
+						&& packet_in.source_address != address_of_last_car_to_try_and_join_platoon)
+					{
+#ifdef DEBUG_PLATOON
+						cout << "--- Platoon: Truck received request from " << packet_in.source_address;
+						cout << " to join the platoon.\n";
+#endif
+						// Check and see if any other cars are joining
+						if (platoon_open)
+						{
+#ifdef DEBUG_PLATOON
+							cout << "--- Platoon: Platoon OPEN.\n";
+							cout << "--- Sending Join info.\n";
+#endif
+							// Increment the car counter
+							platoon_member_count++;
+							
+							// Keep track of what car asked this - Future DEV
+//							address_of_last_car_to_try_and_join_platoon = packet_in.source_address;
+							
+							// Send the car his link number (platoon_member_count), wait for All Clear.
+							// Create the packet
+							tx_packet packet_out;
+							
+							// Fill the packet with Platoon Joining Info
+							packet_out.sequence_num = sequence_counter++;
+							packet_out.source_address = my_address;
+							packet_out.previous_hop = my_address;	// Indicate the sender (me) was the last hop
+							packet_out.previous_hop_port = atoi(nodes[my_node_num].node_port_number.c_str()); // Convert string to int
+							packet_out.destination_address = packet_in.source_address; // Send to the car who wants to join
+							packet_out.time_sent = 0; // TODO: Need to find a way to track time in milli seconds or something
+							packet_out.packet_type = PLATOON_JOIN_INFO_PACKET;
+							packet_out.x_position = x_temp;
+							packet_out.y_position = y_temp;
+							packet_out.x_speed = speed_meter_per_sec;
+							packet_out.platoon_member = platoon_member;
+							packet_out.number_of_platoon_members = platoon_member_count;
+							packet_out.message = 0;
+							
+							// ---- Packet Sending Start ----
+							
+							int y = 0; // Used to keep track of the Connected hostname / port numbers
+							
+							// Send the packet to all connected nodes
+							for (int i = 1; i < MAX_NUM_OF_NODES + 1; i++)
+							{
+								// If we are connected to node i...
+								if (connected_nodes[i] == 1)
+								{
+#ifdef DEBUG_PLATOON
+									cout << "Sending packet to: " << nodes[my_node_num].connected_hostnames[y];
+									cout << " on port: " << nodes[my_node_num].connected_ports[y] << '\n';
+#endif
+									
+									send_packet(nodes[my_node_num].connected_hostnames[y],
+												nodes[my_node_num].connected_ports[y],
+												packet_out);
+
+									// Increase our y counter to prep to send to the next connected node
+									y++;
+								}
+							}
+							
+							// ---- Packet Sending End ----
+							
+							// Set platoon_open to false
+							platoon_open = false;
+							
+							// Wait for all clear then put platoon_open to true and clear address_of_last_car_to_try_and_join_platoon
+						}
+						
+						// Some car is joining and the new car needs to wait and maintain a holding pattern
+						else
+						{
+#ifdef DEBUG_PLATOON
+							cout << "--- Platoon: Platoon CLOSED.\n";
+							cout << "--- Sending Join info.\n";
+#endif
+
+							// Send a packet to the car telling him to try again
+							// Create the packet
+							tx_packet packet_out;
+							
+							// Fill the packet with Platoon Joining Info
+							packet_out.sequence_num = sequence_counter++;
+							packet_out.source_address = my_address;
+							packet_out.previous_hop = my_address;	// Indicate the sender (me) was the last hop
+							packet_out.previous_hop_port = atoi(nodes[my_node_num].node_port_number.c_str()); // Convert string to int
+							packet_out.destination_address = packet_in.source_address; // Send to the car who wants to join
+							packet_out.time_sent = 0; // TODO: Need to find a way to track time in milli seconds or something
+							packet_out.packet_type = PLATOON_WAIT_TO_JOIN_PACKET;
+							packet_out.x_position = x_temp;
+							packet_out.y_position = y_temp;
+							packet_out.x_speed = speed_meter_per_sec;
+							packet_out.platoon_member = platoon_member;
+							packet_out.number_of_platoon_members = 0;
+							packet_out.message = 0;
+							
+							// ---- Packet Sending Start ----
+							
+							int y = 0; // Used to keep track of the Connected hostname / port numbers
+							
+							// Send the packet to all connected nodes
+							for (int i = 1; i < MAX_NUM_OF_NODES + 1; i++)
+							{
+								// If we are connected to node i...
+								if (connected_nodes[i] == 1)
+								{
+#ifdef DEBUG_PLATOON
+									cout << "Sending packet to: " << nodes[my_node_num].connected_hostnames[y];
+									cout << " on port: " << nodes[my_node_num].connected_ports[y] << '\n';
+#endif
+									
+									send_packet(nodes[my_node_num].connected_hostnames[y],
+												nodes[my_node_num].connected_ports[y],
+												packet_out);
+									
+									// Increase our y counter to prep to send to the next connected node
+									y++;
+								}
+							}
+							
+							// ---- Packet Sending End ----
+						}
+					}
+
 					
+					else if (packet_in.message == REQUEST_LEAVE_PLATOON)
+					{
+						// Future Development
+					}
+				}
+				
+				// Else if I am a truck and the packet is from a car who has joined the platoon
+				else if (packet_in.packet_type == CAR_JOIN_STATUS && my_node_num == 1)
+				{
+#ifdef DEBUG_PLATOON
+					cout << "--- Platoon: Truck received CAR_JOIN_STATUS from " << packet_in.source_address;
+					cout << " Status: " << packet_in.message << " (20 = ALL_CLEAR)\n";
+#endif
+					
+					// If the car is done joining
+					if (packet_in.message == ALL_CLEAR)
+					{
+						// Set the Platoon to Open
+						platoon_open = true;
+					}
+					
+				}
+				
+				// Else if I am a car and received a packet from the truck saying I can join and it's for me
+				else if (packet_in.packet_type == PLATOON_JOIN_INFO_PACKET
+						 && my_node_num != 1
+						 && packet_in.destination_address == my_address)
+				{
+#ifdef DEBUG_PLATOON
+					cout << "--- Platoon: Received confirmation I can join platoon.\n";
+#endif
+					// Teleport to my platoon position
+					x_temp = packet_in.x_position - find_distance_from_truck(packet_in.number_of_platoon_members);
+					y_temp = packet_in.y_position;
+					
+					platoon_member = true;
+					
+#ifdef DEBUG_PLATOON
+					cout << "--- Platoon: Moving to: " << x_temp << "\n";
+#endif
+					
+					// Match platoon speed
+					speed_meter_per_sec = packet_in.x_speed;
+					
+					// Send ALL_ClEAR packet
+					// Send a packet to the car telling him to try again
+					// Create the packet
+					tx_packet packet_out;
+					
+					// Fill the packet with Platoon Joining Info
+					packet_out.sequence_num = sequence_counter++;
+					packet_out.source_address = my_address;
+					packet_out.previous_hop = my_address;	// Indicate the sender (me) was the last hop
+					packet_out.previous_hop_port = atoi(nodes[my_node_num].node_port_number.c_str()); // Convert string to int
+					packet_out.destination_address = packet_in.source_address; // Send to the truck
+					packet_out.time_sent = 0; // TODO: Need to find a way to track time in milli seconds or something
+					packet_out.packet_type = CAR_JOIN_STATUS;
+					packet_out.x_position = x_temp;
+					packet_out.y_position = y_temp;
+					packet_out.x_speed = speed_meter_per_sec;
+					packet_out.platoon_member = platoon_member;
+					packet_out.number_of_platoon_members = 0;
+					packet_out.message = ALL_CLEAR;
+					
+					// ---- Packet Sending Start ----
+					
+					int y = 0; // Used to keep track of the Connected hostname / port numbers
+					
+					// Send the packet to all connected nodes
+					for (int i = 1; i < MAX_NUM_OF_NODES + 1; i++)
+					{
+						// If we are connected to node i...
+						if (connected_nodes[i] == 1)
+						{
+#ifdef DEBUG_PLATOON
+							cout << "Sending packet to: " << nodes[my_node_num].connected_hostnames[y];
+							cout << " on port: " << nodes[my_node_num].connected_ports[y] << '\n';
+#endif
+							
+							send_packet(nodes[my_node_num].connected_hostnames[y],
+										nodes[my_node_num].connected_ports[y],
+										packet_out);
+							
+							// Increase our y counter to prep to send to the next connected node
+							y++;
+						}
+					}
+					
+					// ---- Packet Sending End ----
+					
+				}
+				
+				// Else if I am a car and received a packet from the truck saying I need to wait
+				else if (packet_in.packet_type == PLATOON_WAIT_TO_JOIN_PACKET && my_node_num != 1
+						 && packet_in.destination_address == my_address)
+				{
+					// Maybe resend join packet here
+					// Maintain speed - should keep asking automagically
+		
+					speed_meter_per_sec = packet_in.x_speed;
 				}
 				
 				
@@ -1617,8 +2011,13 @@ int main(int argc, const char * argv[]) {
 #ifdef DEBUG_ROAD_RULES
 			//			if (fmod(x_temp,  1) == 0)
 			//			{
-			cout << "Current X Location: " << x_temp << '\n';
-			cout << "Current Y Location: " << y_temp << '\n';
+//			if (my_node_num != 1)
+//			{
+				cout << "Current X Location: " << x_temp << '\n';
+				cout << "Current Y Location: " << y_temp << '\n';
+				cout << "Current Speed: " << speed_meter_per_sec << '\n';
+//			}
+			
 			////				cout << "Buffer Size: " << Buffer.size() << '\n';
 			//			}
 			
@@ -1655,7 +2054,7 @@ int main(int argc, const char * argv[]) {
 #ifdef DEBUG_ROAD_RULES
 						cout << "We have come into range of a new node.\n";
 						display_all_connected_nodes(connected_nodes);
-						display_all_node_data(nodes);
+//						display_all_node_data(nodes);
 #endif
 						
 						
@@ -1698,7 +2097,7 @@ int main(int argc, const char * argv[]) {
 						
 #ifdef DEBUG_ROAD_RULES
 						cout << "Number of links: " << nodes[my_node_num].number_of_links << '\n';
-						display_all_node_data(nodes);
+//						display_all_node_data(nodes);
 #endif
 						// Remove the links for the host node
 						for (int j = 0; j < nodes[my_node_num].number_of_links; j++)

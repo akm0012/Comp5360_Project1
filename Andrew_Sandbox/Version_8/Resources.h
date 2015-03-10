@@ -42,17 +42,27 @@ typedef double Timestamp;
 #define PASSING_SPEED_INCREASE 5 // 5 m/s
 #define PASSING_BUFFER 20 
 
+#define PLATOON_SPACE_BUFFER 15 // The space in between cars
+#define TRUCK_LENGTH 10
+#define CAR_LENGTH 5
+
 #define DANGER_CLOSE 20
 
 #define MAX_NUM_OF_NODES 11
 
-#define REQUEST_DENIED 0
-#define REQUEST_GRANTED 1
-#define REQUEST_ENTER_PLATOON 2	// A request to enter the car train
-#define REQUEST_LEAVE_PLATOON 4	// A request to leave the platoon
-
+// Packet Types
 #define LOCATION_PACKET 8 // Indicates this packet has updated location info
 #define REQUEST_PACKET 16 // Indicates this packet is a request
+#define PLATOON_JOIN_INFO_PACKET 32 // Indicates this packet has platoon info for a joining car
+#define PLATOON_WAIT_TO_JOIN_PACKET 33 // Indicates the car should wait to join
+#define CAR_JOIN_STATUS 64 // Used to give the all clear
+
+// Pre-defined Messages
+#define ALL_CLEAR 20
+#define REQUEST_DENIED 100
+#define REQUEST_GRANTED 101
+#define REQUEST_ENTER_PLATOON 50	// A request to enter the car train
+#define REQUEST_LEAVE_PLATOON 51	// A request to leave the platoon
 
 // This is the struct that represents our packet
 struct packet_to_send
@@ -72,7 +82,7 @@ struct packet_to_send
 	float x_speed;		// 4 bytes
 	bool platoon_member;	// 1 byte (Indicates if this node is in a platoon)
 	int number_of_platoon_members;
-	
+	unsigned short message; // 2 bytes
 	
 } __attribute__((__packed__));
 
