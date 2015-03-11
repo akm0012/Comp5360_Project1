@@ -1,4 +1,0 @@
-Node 1 ubuntu 10010 3674.141846 0 links ubuntu 10011 ubuntu 10012 ubuntu 10013
-Node 2 ubuntu 10011 3622.541992 0 links ubuntu 10012 ubuntu 10010 ubuntu 10013
-Node 3 ubuntu 10012 3657.941650 0 links ubuntu 10011 ubuntu 10010 ubuntu 10013
-Node 4 ubuntu 10013 3589.342285 0 links ubuntu 10011 ubuntu 10012 ubuntu 10010

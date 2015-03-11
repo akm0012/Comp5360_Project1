@@ -23,16 +23,29 @@
 						//			  clock_gettime(clockid_t, struct timespec *)
 						//			  CLOCK_REALTIME
 
-typedef struct time_s_ms {
+typedef struct {
 	time_t sec;
 	long msec;
-} time;
+} utime;
+
+utime get_time_from_epoch()
+{
+	utime result;
+	struct timespec spec;
+	
+	clock_gettime(CLOCK_REALTIME, &spec);
+	
+	result.sec = spec.tv_sec;
+	result.msec = round(spec.tv_nsec / 10e6);
+	
+	return result;
+}
 
 int main() {
 
 	while (1) {
 	
-		struct time now = get_time_from_epoch();
+		utime now = get_time_from_epoch();
 
 		//	*a printf flag defined outside the printf header
 		//	#change the decimal precision here (it's 3 here)
@@ -45,15 +58,3 @@ int main() {
 	return 0;
 }
 
-void time get_time_from_epoch()
-{
-	struct time result;
-	struct timespec spec;
-
-	clock_gettime(CLOCK_REALTIME, &spec);
-
-	result.sec = spec.tv_sec;
-	result.msec = round(spec.tv_nsec / 10e6);
-
-	return result;
-}
