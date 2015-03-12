@@ -220,10 +220,46 @@ bool file_exists(const char *filename)
 }
 
 /*
+ * Gets our port number as a string depending on what node number we are.
+ */
+string get_port_num(int node_num_in)
+{
+	switch (node_num_in) {
+  case 1:
+			return "10130";
+  case 2:
+			return "10131";
+  case 3:
+			return "10132";
+  case 4:
+			return "10133";
+  case 5:
+			return "10134";
+  case 6:
+			return "10135";
+  case 7:
+			return "10136";
+  case 8:
+			return "10137";
+  case 9:
+			return "10138";
+  case 10:
+			return "10139";
+  case 11:
+			return "10140";
+  default:
+			break;
+	}
+	
+	return "null";
+}
+
+
+/*
  * Determines if the Config.txt file exsists.
  * Then it determines what node number you are.
  */
-int initial_config(string hostname_in, string portnum_in)
+int initial_config(string hostname_in)
 {
 	
 	ofstream outStream;
@@ -265,7 +301,8 @@ int initial_config(string hostname_in, string portnum_in)
 		// Create new Config.txt file
 		outStream.open(file_name);
 		
-		outStream << "Node 1 " << hostname_in << " " << portnum_in << " ";
+		outStream << "Node 1 " << hostname_in << " " << get_port_num(node_number)
+ << " ";
 		outStream << "0 0 " << "links";
 		
 		outStream.close();
@@ -752,18 +789,14 @@ static void signalHandler(int signo)
 	
 	if (total_number_of_responses != 0)
 	{
-		cout << "1\n";
 		average_throughput = throughput_time_sum / total_number_of_responses;
-		cout << "1\n";
 		average_response_time = response_time_sum / total_number_of_responses;
-		cout << "1\n";
 		average_packet_loss_percent = packets_lost_count / ((float)packets_sent_count + (float)packets_lost_count);
-		cout << "1\n";
 		average_packet_loss_percent = average_packet_loss_percent * 100;
-		cout << "1\n";
-		cout << "Average Latency (Response Time):\t" << average_response_time << "\t\tseconds\n";
+
+		cout << "Average Latency (Response Time):\t" << average_response_time << "\n";
 		
-		cout << "Average Throughput Time:\t\t" << average_throughput << "\t\tseconds\n";
+		cout << "Average Throughput Time:\t\t" << average_throughput << "\n";
 		
 		cout << "Average Packet Loss:\t\t\t" << average_packet_loss_percent << "%\n";
 
@@ -771,9 +804,9 @@ static void signalHandler(int signo)
 	
 	else
 	{
-		cout << "Average Latency (Response Time):\t" << "No Packets were received.\n";
+		cout << "Average Latency (s):\t" << "No Packets were received.\n";
 		
-		cout << "Average Throughput Time:\t\t" << "No Packets were received.\n";
+		cout << "Average Throughput Time (s):\t\t" << "No Packets were received.\n";
 		
 		cout << "Average Packet Loss:\t\t\t" << "No Packets were received.\n";
 
@@ -935,6 +968,7 @@ double get_time()
 	return stod(time_stamp_out_string);
 }
 
+
 int main(int argc, const char * argv[])
 {
 	
@@ -1000,7 +1034,7 @@ int main(int argc, const char * argv[])
 	int platoon_member_count = 0; // If we are truck this will go to 1
 	
 	// Used for timing
-	double time_stamp_out_double;
+	double time_in_temp = 0;
 	
 	//----- Packet Header Variables End -----
 	
@@ -1018,9 +1052,9 @@ int main(int argc, const char * argv[])
 	// Initilaze your node list.
 	init_nodes(nodes);
 	
-	if (argc != 3)
+	if (argc != 2)
 	{
-		cout << "Error: Missing Params (PortNumber, File Name)\n";
+		cout << "Error: Missing Params (PortNumber)\n";
 		exit(1);
 	}
 	
@@ -1033,11 +1067,14 @@ int main(int argc, const char * argv[])
 	string hostname(host_name);
 	hostname.shrink_to_fit();
 	
-	string port_num = argv[1];
-	file_name = argv[2];
+	//string port_num = argv[1];
+	file_name = argv[1];
 	
 	// Initial Node set up, finds what node number you are
-	my_node_num = initial_config(hostname, port_num);
+	my_node_num = initial_config(hostname);
+	
+	// Get our port number depending on what node we are
+	string port_num = get_port_num(my_node_num);
 	
 #ifdef DEBUG
 	cout << "Node Number: " << my_node_num << '\n';
@@ -1475,7 +1512,7 @@ int main(int argc, const char * argv[])
 								// Calculate "Packet Loss" probability (If > 100 meters, it can't send)
 								if (will_packet_send(distance_apart))
 								{
-									//TODO: Keep track of a succsessful send
+									packets_sent_count++;
 									
 									// If get a green light, we send. Otherwise don't and move on to next neighbor
 									
@@ -1484,6 +1521,11 @@ int main(int argc, const char * argv[])
 									cout << " on port: " << nodes[my_node_num].connected_ports[y] << '\n';
 #endif
 									
+									// Update the new sent time time
+									time_in_temp = packet_in.time_sent;
+									
+									packet_in.time_sent = get_time();
+									
 									send_packet(nodes[my_node_num].connected_hostnames[y],
 												nodes[my_node_num].connected_ports[y],
 												packet_in);
@@ -1491,7 +1533,7 @@ int main(int argc, const char * argv[])
 								
 								else
 								{
-									//TODO: Keep track of the lost packet
+									packets_lost_count++;
 								}
 							}
 						} // End FOR loop where we send packets.
@@ -1507,13 +1549,18 @@ int main(int argc, const char * argv[])
 #endif
 				}
 				
+				// Record the throughput time (aka Turn Around Time)
+				update_throughput_time(get_time() - time_in_temp);
 			}
 			else
 			{
 #ifdef DEBUG
 				cout << "Received a packet from myself... Dropping packet.\n";
 #endif
+				// Record the throughput time (aka Turn Around Time)
+				update_throughput_time(get_time() - packet_in.time_sent);
 			}
+			
 			
 			// TODO: Use this packet's info to update my state
 			// Ex: Speed, lane position, send join platoon packet? Or if Truck deal with a recieved platoon request
@@ -1564,9 +1611,12 @@ int main(int argc, const char * argv[])
 								// Match car's speed
 								speed_meter_per_sec = packet_in.x_speed;
 								
+								
+								
 								// Might have to teleport to exactly 20 m away so this case keeps calling
 								// POTENTIAL PROBLEM: This should fix the issue when a car matches the speed of the car ahead,
 								// but does so where he stays more than danger close distance away.
+								x_temp = packet_in.x_position - 19;
 #ifdef DEBUG_ROAD_RULES
 								cout << "-- ROAD RULES: Left Lane is NOT Clear, matching speed.\n";
 								cout << "New Speed: " << speed_meter_per_sec << '\n';
@@ -1986,10 +2036,10 @@ int main(int argc, const char * argv[])
 		
 					speed_meter_per_sec = packet_in.x_speed;
 				}
+				
+				// Record the throughput time (aka Turn Around Time)
+				update_throughput_time(get_time() - packet_in.time_sent);
 			}
-			
-			// Record the throughput time (aka Turn Around Time)
-			update_throughput_time(get_time() - packet_in.time_sent);
 			
 #ifdef DEBUG
 			cout << "Done servicing popped packet.\n";
@@ -2088,12 +2138,14 @@ int main(int argc, const char * argv[])
 			
 			if (platoon_member)
 			{
-				cout << "YES\n";
+				cout << "YES";
 			}
 			else
 			{
-				cout << "NO\n";
+				cout << "NO";
 			}
+			
+			cout << "\tSpeed: " << speed_meter_per_sec << '\n';
 		
 		
 #endif
