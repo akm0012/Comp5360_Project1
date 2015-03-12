@@ -1,35 +1,13 @@
 //
 //  Resources.h
-//  
+//
 //
 //  Created by Andrew Marshall on 2/25/15.
+//  Refactored by Evan Hall on 3/12/15.
 //
 //
-
-#ifndef _Resources_h
-#define _Resources_h
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <errno.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netdb.h>
-#include <iostream>
-#include <cstdlib>
-#include <unistd.h>
-#include <fstream>
-#include <pthread.h>
-#include <deque>
-#include <time.h>
-
-using namespace std;
-
-typedef double Timestamp;
+#ifndef RESOURCES_H
+#define RESOURCES_H
 
 #define MAX_MESSAGE_LEN 4096
 #define MAX_PACKET_LEN 4096
@@ -64,52 +42,79 @@ typedef double Timestamp;
 #define REQUEST_ENTER_PLATOON 50	// A request to enter the car train
 #define REQUEST_LEAVE_PLATOON 51	// A request to leave the platoon
 
+
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <errno.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <iomanip>
+#include <iostream>
+#include <cstdlib>
+#include <unistd.h>
+#include <fstream>
+#include <pthread.h>
+#include <deque>
+#include <time.h>
+using namespace std;
+
+
+typedef double Timestamp;
+
 // Used for timing and statistics 
 typedef struct {
+
 	time_t sec;
 	long nsec;
+
 } utime;
 
 // This is the struct that represents our packet
-struct packet_to_send
-{
+struct packet_to_send {
 	// Header
 	unsigned int sequence_num;	// 4 bytes
 	unsigned int source_address;	// 4 bytes
 	unsigned int previous_hop;	// 4 bytes (address of last hop)
-	int previous_hop_port; // Port number of last hop
-	unsigned int destination_address; // 4 bytes (All 1's means broadcast)
+	int previous_hop_port;	// Port number of last hop
+	unsigned int destination_address;	// 4 bytes (All 1's means broadcast)
 	double time_sent;	// 8 bytes
-	
+
 	// Payload
-	unsigned short packet_type; // 2 bytes (Defines if update location packet or request packet)
+	unsigned short packet_type;	// 2 bytes (Defines if update location packet or request packet)
 	float x_position;	// 4 bytes
 	int y_position;		// 4 bytes
 	float x_speed;		// 4 bytes
 	bool platoon_member;	// 1 byte (Indicates if this node is in a platoon)
 	int number_of_platoon_members;
-	unsigned short message; // 2 bytes
-	
-} __attribute__((__packed__));
+	unsigned short message;	// 2 bytes
+
+} __attribute__(( __packed__ ));
 
 typedef struct packet_to_send tx_packet;
 
-struct node_info
-{
+struct node_info {
+
 	int node_number;
 	string node_hostname;
 	string node_port_number;
 	float node_x_coordinate;
 	int node_y_coordinate;
-	
+
 	int number_of_links;
-	
+
 	string connected_hostnames[MAX_NUM_OF_NODES];
 	string connected_ports[MAX_NUM_OF_NODES];
 };
 
-struct cache_table
-{
+struct cache_table {
+
 	unsigned int source_address[MAX_NUM_OF_NODES];
 	int highest_sequence_num[MAX_NUM_OF_NODES];
 	int number_of_broadcasts[MAX_NUM_OF_NODES]; // # Times we have bradcasted highest seq.# packet
@@ -117,5 +122,62 @@ struct cache_table
 
 // Prototypes
 extern void send_packet(string hostname_to_send, string port_to_send, packet_to_send packet_out);
+
+static int get_number_of_digits(int number)
+{
+	int result;
+
+	if (number < 0)
+	{
+		number *= -1;
+		result++;
+	}
+	else if (number == 0)
+	{
+		return 1;
+	}
+
+	do
+	{
+		number /= 10;
+		result++;
+
+	} while (number != 0);
+	
+	return result;
+}
+
+static int get_number_of_digits(float number)
+{
+	int result;
+
+	if (signbit(number))
+	{
+		number *= -1;
+		result++;
+	}
+	else if (number == 0.0)
+	{
+		return 1;
+	}
+
+	double intpart, fractpart;
+	fractpart = modf(number, &intpart);
+
+	while (intpart != 0.0)
+	{
+		intpart /= 10;
+		result++;
+	}
+
+	while (fractpart != 0.0)
+	{
+		fractpart *= 10;
+		fractpart = modf(fractpart, &intpart);
+		result++;
+	}
+
+	return result;
+}
 
 #endif
