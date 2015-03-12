@@ -20,9 +20,11 @@
 #define DEBUG 1
 #define DEBUG_ROAD_RULES 1
 #define DEBUG_PLATOON 1
+#define PROD_OUTPUT 1
 #undef DEBUG // Turn off DEBUG
-//#undef DEBUG_ROAD_RULES
-//#undef DEBUG_PLATOON
+#undef DEBUG_ROAD_RULES
+#undef DEBUG_PLATOON
+//#undef PROD_OUTPUT
 
 using namespace std;
 
@@ -39,7 +41,40 @@ int connected_nodes[MAX_NUM_OF_NODES + 1];
 cache_table my_cache;
 const char *file_name;
 
+// Used for reporting statistics
+double response_time_sum;
+double throughput_time_sum;
+int total_number_of_responses;
+
+int packets_sent_count;
+int packets_lost_count;
+
 /* Functions */
+
+/*
+ * Updates our response time sum.
+ */
+void update_response_time(double response_time_in)
+{
+	if (response_time_in >= 0)
+	{
+		response_time_sum = response_time_sum + response_time_in;
+		total_number_of_responses++;
+	}
+	
+}
+
+/*
+ * Updates our throughput time sum.
+ */
+void update_throughput_time(double throughput_time_in)
+{
+	if (throughput_time_in >= 0)
+	{
+		throughput_time_sum = throughput_time_sum + throughput_time_in;
+	}
+	
+}
 
 /*
  * Reads a Config.txt file and then populates the "nodes" data structure.
@@ -563,7 +598,6 @@ void *start_receiving(void *port_in)
 	pthread_exit(NULL);
 }
 
-
 /*
  * Assumes at 100 meters we have a 0% chance of sending.
  *
@@ -693,9 +727,9 @@ float find_distance_from_truck(int num_in_train)
 	
 	// See My Notes for more details on how this works
 	
-	cout << "DEBUG: num_in_train: " << num_in_train << '\n';
+	//cout << "DEBUG: num_in_train: " << num_in_train << '\n';
 	
-	cout << "DEBUG: Returning: " << (PLATOON_SPACE_BUFFER + TRUCK_LENGTH) + ((num_in_train - 2) * (PLATOON_SPACE_BUFFER + CAR_LENGTH)) << '\n';
+	//cout << "DEBUG: Returning: " << (PLATOON_SPACE_BUFFER + TRUCK_LENGTH) + ((num_in_train - 2) * (PLATOON_SPACE_BUFFER + CAR_LENGTH)) << '\n';
 	
 	return (PLATOON_SPACE_BUFFER + TRUCK_LENGTH) + ((num_in_train - 2) * (PLATOON_SPACE_BUFFER + CAR_LENGTH));
 }
@@ -709,15 +743,52 @@ static void signalHandler(int signo)
 	// signal(signo,SIG_IGN);
 	signal(SIGINT,signalHandler); // needed on some systems
 	
-	cout<< "\n---------- Ctrl-C ----------\n";
+	cout<< "\n---------- Statistics ----------\n";
 	
-	display_all_node_data(nodes);
+	// Calculate our averages
+	double average_throughput = 0;
+	double average_response_time = 0;
+	float average_packet_loss_percent = 0;
 	
-	display_cache_table(my_cache);
+	if (total_number_of_responses != 0)
+	{
+		cout << "1\n";
+		average_throughput = throughput_time_sum / total_number_of_responses;
+		cout << "1\n";
+		average_response_time = response_time_sum / total_number_of_responses;
+		cout << "1\n";
+		average_packet_loss_percent = packets_lost_count / ((float)packets_sent_count + (float)packets_lost_count);
+		cout << "1\n";
+		average_packet_loss_percent = average_packet_loss_percent * 100;
+		cout << "1\n";
+		cout << "Average Latency (Response Time):\t" << average_response_time << "\t\tseconds\n";
+		
+		cout << "Average Throughput Time:\t\t" << average_throughput << "\t\tseconds\n";
+		
+		cout << "Average Packet Loss:\t\t\t" << average_packet_loss_percent << "%\n";
+
+	}
 	
-	display_all_connected_nodes(connected_nodes);
+	else
+	{
+		cout << "Average Latency (Response Time):\t" << "No Packets were received.\n";
+		
+		cout << "Average Throughput Time:\t\t" << "No Packets were received.\n";
+		
+		cout << "Average Packet Loss:\t\t\t" << "No Packets were received.\n";
+
+	}
 	
-	cout << "Buffer Size: " << Buffer.size() << '\n';
+	
+	
+	
+	//display_all_node_data(nodes);
+	
+	//display_cache_table(my_cache);
+	
+	//display_all_connected_nodes(connected_nodes);
+	
+	//cout << "Buffer Size: " << Buffer.size() << '\n';
 	
 	exit(0);
 	
@@ -829,12 +900,54 @@ void rewrite_config_file(string lineToUpdate)
 	outStream.close();
 }
 
+/*
+ Used for time tracking. 
+ */
+utime get_time_from_epoch()
+{
+	utime result;
+	struct timespec spec;
+	
+	clock_gettime(CLOCK_REALTIME, &spec);
+	
+	result.sec = spec.tv_sec;
+	result.nsec = round(spec.tv_nsec / 10e6);
+	
+	return result;
+}
+
+/*
+ * Returns the current time as a double. 
+ */
+double get_time()
+{
+	// Get the time the packet was sent
+	utime now = get_time_from_epoch();
+	
+	// Get the time as a string
+	string time_stamp_out_string = "";
+	time_stamp_out_string.append(to_string(now.sec));
+	time_stamp_out_string = time_stamp_out_string.substr(6, time_stamp_out_string.length());
+	time_stamp_out_string.append(".");
+	time_stamp_out_string.append(to_string(now.nsec));
+	
+	// Return it as a double
+	return stod(time_stamp_out_string);
+}
 
 int main(int argc, const char * argv[])
 {
 	
 	// Used for Debugging - Catches Ctrl-C
 	signal(SIGINT, signalHandler); // Prepare code to handle a Ctrl + c interrupt
+	
+	// Used for reporting statistics (Declared as Global Variables)
+	response_time_sum = 0;
+	throughput_time_sum = 0;
+	total_number_of_responses = 0;
+	
+	packets_sent_count = 0;
+	packets_lost_count = 0;
 	
 	// RNG - Seeded on System Time
 	srand(time(0));
@@ -887,7 +1000,7 @@ int main(int argc, const char * argv[])
 	int platoon_member_count = 0; // If we are truck this will go to 1
 	
 	// Used for timing
-	// TODO: Add timing stuff
+	double time_stamp_out_double;
 	
 	//----- Packet Header Variables End -----
 	
@@ -905,17 +1018,24 @@ int main(int argc, const char * argv[])
 	// Initilaze your node list.
 	init_nodes(nodes);
 	
-	if (argc != 4)
+	if (argc != 3)
 	{
-		cout << "Error: Missing Params (Hostname, PortNumber, File Name)\n";
+		cout << "Error: Missing Params (PortNumber, File Name)\n";
 		exit(1);
 	}
 	
 	// Get the host name and port number from Commnad Line
-	string hostname = argv[1];
-	string port_num = argv[2];
-	file_name = argv[3];
-		
+	
+	char host_name[_SC_HOST_NAME_MAX];
+	gethostname(host_name, _SC_HOST_NAME_MAX);
+	
+	// Get the hostname
+	string hostname(host_name);
+	hostname.shrink_to_fit();
+	
+	string port_num = argv[1];
+	file_name = argv[2];
+	
 	// Initial Node set up, finds what node number you are
 	my_node_num = initial_config(hostname, port_num);
 	
@@ -955,8 +1075,8 @@ int main(int argc, const char * argv[])
 		// Always start in right lane
 		y_temp = RIGHT_LANE;
 		
-		// Select some semi-random speed in range of [20, 30]
-		speed_meter_per_sec = (rand() % 11) + 20;
+		// Select some semi-random speed in range of [25, 30]
+		speed_meter_per_sec = (rand() % 6) + 25;
 		starting_speed_meter_per_sec = speed_meter_per_sec;
 		
 		// -- DEBUG CODE --
@@ -1036,8 +1156,8 @@ int main(int argc, const char * argv[])
 		cout << "Car y_temp: " << y_temp << '\n';
 #endif
 		
-		// Select some semi-random speed in range of [25, 40]
-		speed_meter_per_sec = (rand() % 16) + 25;
+		// Select some semi-random speed in range of [30, 45]
+		speed_meter_per_sec = (rand() % 16) + 30;
 		starting_speed_meter_per_sec = speed_meter_per_sec;
 	
 		// -- DEBUG CODE --
@@ -1187,6 +1307,10 @@ int main(int argc, const char * argv[])
 			
 			// Pop the first packet in queue
 			Buffer.pop_front();
+			
+			// Record the Response Time
+			update_response_time(get_time() - packet_in.time_sent);
+			//cout << setprecision(14) << "Response Time: " << get_time() - packet_in.time_sent << '\n';
 			
 			// ----- RBA STARTS HERE -----
 		
@@ -1491,7 +1615,7 @@ int main(int argc, const char * argv[])
 						packet_out.previous_hop = my_address;	// Indicate the sender (me) was the last hop
 						packet_out.previous_hop_port = atoi(nodes[my_node_num].node_port_number.c_str()); // Convert string to int
 						packet_out.destination_address = 0xFFFFFFFF; // Send to all cars as I don't know the trucks address yet
-						packet_out.time_sent = 0; // TODO: Need to find a way to track time in milli seconds or something
+						packet_out.time_sent = 0;
 						packet_out.packet_type = REQUEST_PACKET;
 						packet_out.x_position = x_temp;
 						packet_out.y_position = y_temp;
@@ -1514,6 +1638,9 @@ int main(int argc, const char * argv[])
 								cout << "Sending packet to: " << nodes[my_node_num].connected_hostnames[y];
 								cout << " on port: " << nodes[my_node_num].connected_ports[y] << '\n';
 #endif
+								
+								// Put the time in the packet right before sending.
+								packet_out.time_sent = get_time();
 								
 								send_packet(nodes[my_node_num].connected_hostnames[y],
 											nodes[my_node_num].connected_ports[y],
@@ -1556,7 +1683,7 @@ int main(int argc, const char * argv[])
 						packet_out.previous_hop = my_address;	// Indicate the sender (me) was the last hop
 						packet_out.previous_hop_port = atoi(nodes[my_node_num].node_port_number.c_str()); // Convert string to int
 						packet_out.destination_address = 0xFFFFFFFF; // Send to all cars as I don't know the trucks address yet
-						packet_out.time_sent = 0; // TODO: Need to find a way to track time in milli seconds or something
+						packet_out.time_sent = 0;
 						packet_out.packet_type = REQUEST_PACKET;
 						packet_out.x_position = x_temp;
 						packet_out.y_position = y_temp;
@@ -1579,6 +1706,8 @@ int main(int argc, const char * argv[])
 								cout << "Sending packet to: " << nodes[my_node_num].connected_hostnames[y];
 								cout << " on port: " << nodes[my_node_num].connected_ports[y] << '\n';
 #endif
+								// Put the time in the packet right before sending.
+								packet_out.time_sent = get_time();
 								
 								send_packet(nodes[my_node_num].connected_hostnames[y],
 											nodes[my_node_num].connected_ports[y],
@@ -1651,7 +1780,7 @@ int main(int argc, const char * argv[])
 							packet_out.previous_hop = my_address;	// Indicate the sender (me) was the last hop
 							packet_out.previous_hop_port = atoi(nodes[my_node_num].node_port_number.c_str()); // Convert string to int
 							packet_out.destination_address = packet_in.source_address; // Send to the car who wants to join
-							packet_out.time_sent = 0; // TODO: Need to find a way to track time in milli seconds or something
+							packet_out.time_sent = 0;
 							packet_out.packet_type = PLATOON_JOIN_INFO_PACKET;
 							packet_out.x_position = x_temp;
 							packet_out.y_position = y_temp;
@@ -1674,6 +1803,8 @@ int main(int argc, const char * argv[])
 									cout << "Sending packet to: " << nodes[my_node_num].connected_hostnames[y];
 									cout << " on port: " << nodes[my_node_num].connected_ports[y] << '\n';
 #endif
+									// Put the time in the packet right before sending.
+									packet_out.time_sent = get_time();
 									
 									send_packet(nodes[my_node_num].connected_hostnames[y],
 												nodes[my_node_num].connected_ports[y],
@@ -1710,7 +1841,7 @@ int main(int argc, const char * argv[])
 							packet_out.previous_hop = my_address;	// Indicate the sender (me) was the last hop
 							packet_out.previous_hop_port = atoi(nodes[my_node_num].node_port_number.c_str()); // Convert string to int
 							packet_out.destination_address = packet_in.source_address; // Send to the car who wants to join
-							packet_out.time_sent = 0; // TODO: Need to find a way to track time in milli seconds or something
+							packet_out.time_sent = 0;
 							packet_out.packet_type = PLATOON_WAIT_TO_JOIN_PACKET;
 							packet_out.x_position = x_temp;
 							packet_out.y_position = y_temp;
@@ -1733,6 +1864,8 @@ int main(int argc, const char * argv[])
 									cout << "Sending packet to: " << nodes[my_node_num].connected_hostnames[y];
 									cout << " on port: " << nodes[my_node_num].connected_ports[y] << '\n';
 #endif
+									// Put the time in the packet right before sending.
+									packet_out.time_sent = get_time();
 									
 									send_packet(nodes[my_node_num].connected_hostnames[y],
 												nodes[my_node_num].connected_ports[y],
@@ -1805,7 +1938,7 @@ int main(int argc, const char * argv[])
 					packet_out.previous_hop = my_address;	// Indicate the sender (me) was the last hop
 					packet_out.previous_hop_port = atoi(nodes[my_node_num].node_port_number.c_str()); // Convert string to int
 					packet_out.destination_address = packet_in.source_address; // Send to the truck
-					packet_out.time_sent = 0; // TODO: Need to find a way to track time in milli seconds or something
+					packet_out.time_sent = 0;
 					packet_out.packet_type = CAR_JOIN_STATUS;
 					packet_out.x_position = x_temp;
 					packet_out.y_position = y_temp;
@@ -1828,6 +1961,8 @@ int main(int argc, const char * argv[])
 							cout << "Sending packet to: " << nodes[my_node_num].connected_hostnames[y];
 							cout << " on port: " << nodes[my_node_num].connected_ports[y] << '\n';
 #endif
+							// Put the time in the packet right before sending.
+							packet_out.time_sent = get_time();
 							
 							send_packet(nodes[my_node_num].connected_hostnames[y],
 										nodes[my_node_num].connected_ports[y],
@@ -1852,6 +1987,9 @@ int main(int argc, const char * argv[])
 					speed_meter_per_sec = packet_in.x_speed;
 				}
 			}
+			
+			// Record the throughput time (aka Turn Around Time)
+			update_throughput_time(get_time() - packet_in.time_sent);
 			
 #ifdef DEBUG
 			cout << "Done servicing popped packet.\n";
@@ -1923,8 +2061,45 @@ int main(int argc, const char * argv[])
 				nodes[my_node_num].node_x_coordinate = x_temp;
 			}
 			
-#ifdef DEBUG_ROAD_RULES
+#ifdef PROD_OUTPUT
 			
+			if (my_node_num == 1)
+			{
+				cout << "Truck:\t";
+			}
+			
+			else
+			{
+				cout << "Car " << my_node_num - 1 << ":\t";
+			}
+			
+			cout << "GPS: " << x_temp << "\tLane: ";
+			
+			if (y_temp == LEFT_LANE)
+			{
+				cout << "Left";
+			}
+			else if (y_temp == RIGHT_LANE)
+			{
+				cout << "Right";
+			}
+			
+			cout << "\tPlatoon Member: ";
+			
+			if (platoon_member)
+			{
+				cout << "YES\n";
+			}
+			else
+			{
+				cout << "NO\n";
+			}
+		
+		
+#endif
+		
+#ifdef DEBUG_ROAD_RULES
+		
 			cout << "Current X Location: " << x_temp << '\n';
 			cout << "Current Y Location: " << y_temp << '\n';
 			cout << "Current Speed: " << speed_meter_per_sec << '\n';
@@ -2022,7 +2197,7 @@ int main(int argc, const char * argv[])
 								}
 								// Decrement our link counter
 								nodes[my_node_num].number_of_links--;
-								display_all_node_data(nodes);
+								//display_all_node_data(nodes);
 								// Break out of FOR loop!!! J is messed up now and will break the FOR loop if you don't.
 								break;
 							}
@@ -2052,7 +2227,7 @@ int main(int argc, const char * argv[])
 								}
 								// Decrement our link counter
 								nodes[i].number_of_links--;
-								display_all_node_data(nodes);
+								//display_all_node_data(nodes);
 								// Break out of FOR loop!!! J is messed up now and will break the FOR loop if you don't.
 								break;
 							}
@@ -2091,7 +2266,7 @@ int main(int argc, const char * argv[])
 			packet_out.previous_hop = my_address;	// Indicate the sender (me) was the last hop
 			packet_out.previous_hop_port = atoi(nodes[my_node_num].node_port_number.c_str()); // Convert string to int
 			packet_out.destination_address = 0xFFFFFFFF; // All 1's means broadcast
-			packet_out.time_sent = 0; // TODO: Need to find a way to track time in milli seconds or something
+			packet_out.time_sent = 0;
 			packet_out.packet_type = LOCATION_PACKET;
 			packet_out.x_position = x_temp;
 			packet_out.y_position = y_temp;
@@ -2133,23 +2308,27 @@ int main(int argc, const char * argv[])
 					// Calculate "Packet Loss" probability (If > 100 meters, it can't send)
 					if (will_packet_send(distance_apart))
 					{
-						//TODO: Keep track of a succsessful send
-						
 						// If get a green light, we send. Otherwise don't and move on to next neighbor
 						
 #ifdef DEBUG
 						cout << "Sending packet to: " << nodes[my_node_num].connected_hostnames[y];
 						cout << " on port: " << nodes[my_node_num].connected_ports[y] << '\n';
 #endif
+						// Put the time in the packet right before sending.
+						packet_out.time_sent = get_time();
 						
 						send_packet(nodes[my_node_num].connected_hostnames[y],
 									nodes[my_node_num].connected_ports[y],
 									packet_out);
+						
+						// Keep track of a successful packet
+						packets_sent_count++;
 					}
 					
 					else
 					{
-						//TODO: Keep track of the lost packet
+						
+						packets_lost_count++;
 					}
 					
 					// Increase our y counter to prep to send to the next connected node

@@ -64,6 +64,12 @@ typedef double Timestamp;
 #define REQUEST_ENTER_PLATOON 50	// A request to enter the car train
 #define REQUEST_LEAVE_PLATOON 51	// A request to leave the platoon
 
+// Used for timing and statistics 
+typedef struct {
+	time_t sec;
+	long nsec;
+} utime;
+
 // This is the struct that represents our packet
 struct packet_to_send
 {
@@ -73,7 +79,7 @@ struct packet_to_send
 	unsigned int previous_hop;	// 4 bytes (address of last hop)
 	int previous_hop_port; // Port number of last hop
 	unsigned int destination_address; // 4 bytes (All 1's means broadcast)
-	Timestamp time_sent;	// 8 bytes
+	double time_sent;	// 8 bytes
 	
 	// Payload
 	unsigned short packet_type; // 2 bytes (Defines if update location packet or request packet)
