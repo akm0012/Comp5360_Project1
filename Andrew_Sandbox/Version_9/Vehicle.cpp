@@ -45,6 +45,7 @@ const char *file_name;
 double response_time_sum;
 double throughput_time_sum;
 int total_number_of_responses;
+int total_jobs;
 
 int packets_sent_count;
 int packets_lost_count;
@@ -72,6 +73,7 @@ void update_throughput_time(double throughput_time_in)
 	if (throughput_time_in >= 0)
 	{
 		throughput_time_sum = throughput_time_sum + throughput_time_in;
+		total_jobs++;
 	}
 	
 }
@@ -253,6 +255,7 @@ string get_port_num(int node_num_in)
 	
 	return "null";
 }
+
 
 
 /*
@@ -780,6 +783,17 @@ static void signalHandler(int signo)
 	// signal(signo,SIG_IGN);
 	signal(SIGINT,signalHandler); // needed on some systems
 	
+	cout<< "\n---------- Final Data Structures ----------\n";
+	
+	display_all_node_data(nodes);
+	
+	display_cache_table(my_cache);
+	
+	display_all_connected_nodes(connected_nodes);
+	
+	cout << "Buffer Size: " << Buffer.size() << '\n';
+
+	
 	cout<< "\n---------- Statistics ----------\n";
 	
 	// Calculate our averages
@@ -789,14 +803,14 @@ static void signalHandler(int signo)
 	
 	if (total_number_of_responses != 0)
 	{
-		average_throughput = throughput_time_sum / total_number_of_responses;
+		average_throughput = throughput_time_sum / total_jobs;
 		average_response_time = response_time_sum / total_number_of_responses;
 		average_packet_loss_percent = packets_lost_count / ((float)packets_sent_count + (float)packets_lost_count);
 		average_packet_loss_percent = average_packet_loss_percent * 100;
 
-		cout << "Average Latency (Response Time):\t" << average_response_time << "\n";
+		cout << "Average Latency (s):\t\t\t" << average_response_time << "\n";
 		
-		cout << "Average Throughput Time:\t\t" << average_throughput << "\n";
+		cout << "Average Throughput Time (s):\t\t" << average_throughput << "\n";
 		
 		cout << "Average Packet Loss:\t\t\t" << average_packet_loss_percent << "%\n";
 
@@ -804,7 +818,7 @@ static void signalHandler(int signo)
 	
 	else
 	{
-		cout << "Average Latency (s):\t" << "No Packets were received.\n";
+		cout << "Average Latency (s):\t\t\t" << "No Packets were received.\n";
 		
 		cout << "Average Throughput Time (s):\t\t" << "No Packets were received.\n";
 		
@@ -979,6 +993,7 @@ int main(int argc, const char * argv[])
 	response_time_sum = 0;
 	throughput_time_sum = 0;
 	total_number_of_responses = 0;
+	total_jobs = 0;
 	
 	packets_sent_count = 0;
 	packets_lost_count = 0;
@@ -1453,10 +1468,16 @@ int main(int argc, const char * argv[])
 						sprintf(str, "%d", packet_in.previous_hop_port);
 						string prev_port_string = string(str);
 						
+						// Make a copy of the packet so we don't mess with the start time of the incoming one
+						tx_packet packet_copy;
+						packet_copy = packet_in;
+						
 						// Now that we have stored the prev port, we can update the last hop and prep the outgoing packet
 						// Update the packet's last hop fields
-						packet_in.previous_hop = my_address;
-						packet_in.previous_hop_port = atoi(nodes[my_node_num].node_port_number.c_str()); // Convert string to int
+						packet_copy.previous_hop = my_address;
+						packet_copy.previous_hop_port = atoi(nodes[my_node_num].node_port_number.c_str()); // Convert string to int
+						
+						
 						
 						// Now we can iterate through our links and send (if applicable)
 						for (int y = 0; y < nodes[my_node_num].number_of_links; y++)
@@ -1480,9 +1501,7 @@ int main(int argc, const char * argv[])
 								cout << "RBA: Send to port: " << nodes[my_node_num].connected_ports[y];
 								cout << " at address: " << nodes[my_node_num].connected_hostnames[y] << '\n';
 #endif
-								
 								// Need to find which node number this is so we can determine the distance for the packet loss algorithim.
-								
 								int temp_node_num = 0; // 0 is an invalid node number
 								
 								for (int k=1; k < MAX_NUM_OF_NODES + 1; k++)
@@ -1521,14 +1540,11 @@ int main(int argc, const char * argv[])
 									cout << " on port: " << nodes[my_node_num].connected_ports[y] << '\n';
 #endif
 									
-									// Update the new sent time time
-									time_in_temp = packet_in.time_sent;
-									
-									packet_in.time_sent = get_time();
+									packet_copy.time_sent = get_time();
 									
 									send_packet(nodes[my_node_num].connected_hostnames[y],
 												nodes[my_node_num].connected_ports[y],
-												packet_in);
+												packet_copy);
 								}
 								
 								else
@@ -1548,17 +1564,12 @@ int main(int argc, const char * argv[])
 					cout << "Old packet, throwing it out...\n";
 #endif
 				}
-				
-				// Record the throughput time (aka Turn Around Time)
-				update_throughput_time(get_time() - time_in_temp);
 			}
 			else
 			{
 #ifdef DEBUG
 				cout << "Received a packet from myself... Dropping packet.\n";
 #endif
-				// Record the throughput time (aka Turn Around Time)
-				update_throughput_time(get_time() - packet_in.time_sent);
 			}
 			
 			
@@ -2036,10 +2047,10 @@ int main(int argc, const char * argv[])
 		
 					speed_meter_per_sec = packet_in.x_speed;
 				}
-				
-				// Record the throughput time (aka Turn Around Time)
-				update_throughput_time(get_time() - packet_in.time_sent);
 			}
+			
+			// Record the throughput time (aka Turn Around Time)
+			update_throughput_time(get_time() - packet_in.time_sent);
 			
 #ifdef DEBUG
 			cout << "Done servicing popped packet.\n";
