@@ -30,7 +30,7 @@
 #undef DEBUG_ROAD_RULES
 #undef DEBUG_PLATOON
 #undef DEBUG_RBA
-//#undef PROD_OUTPUT
+#undef PROD_OUTPUT
 //#undef DEBUG_NEW
 
 using namespace std;
@@ -233,6 +233,7 @@ bool file_exists(const char *filename)
 
 /*
  * Gets our port number as a string depending on what node number we are.
+ [10060, 10064]
  */
 string get_port_num(int node_num_in)
 {
@@ -675,7 +676,7 @@ void *start_receiving(void *port_in)
 		}
 		
 		
-#ifdef DEBUG
+#ifdef DEBUG_NEW
 		printf("Packet Received! It contained: %d bytes.\n", numbytes);
 		cout << "Pushing packet to end of buffer.\n";
 #endif
@@ -1195,13 +1196,13 @@ int main(int argc, const char * argv[])
 		speed_meter_per_sec = (rand() % 6) + 25;
 		starting_speed_meter_per_sec = speed_meter_per_sec;
 		
-		// -- DEBUG CODE --
-		// Can be used to set up custom scenarios
-		cout << "DEBUG: Truck 1\n";
-		y_temp = RIGHT_LANE;
-		speed_meter_per_sec = 20;
-		starting_speed_meter_per_sec = speed_meter_per_sec;
-		x_temp = 1000;
+//		// -- DEBUG CODE --
+//		// Can be used to set up custom scenarios
+//		cout << "DEBUG: Truck 1\n";
+//		y_temp = RIGHT_LANE;
+//		speed_meter_per_sec = 20;
+//		starting_speed_meter_per_sec = speed_meter_per_sec;
+//		x_temp = 1000;
 		
 #ifdef DEBUG
 		cout << "Truck speed: " << speed_meter_per_sec << '\n';
@@ -1288,20 +1289,26 @@ int main(int argc, const char * argv[])
 			unique_nodes_updated[i] = false;
 		}
 		
+		int trying = 0;
 		while (!all_nodes_updated)
 		{
+			cout << "Try Count: " << trying++ << '\n';
 			// Send (or resend an init status packet)
 			for (int i = 1; i < my_node_num; i++)
 			{
+#ifdef DEBUG_NEW
 				cout << "Sending to: " << i << '\n';
 				
 				cout << "Host: " << nodes[i].node_hostname << '\n';
 				cout << "Port: " << nodes[i].node_port_number << '\n';
-				
+#endif
 				send_packet(nodes[i].node_hostname,
 							nodes[i].node_port_number,
 							packet_out);
 			}
+#ifdef DEBUG_NEW
+			cout << "Start: Buffer Size: " << Buffer.size() << '\n';
+#endif
 			
 			if (!Buffer.empty())
 			{
@@ -1407,7 +1414,7 @@ int main(int argc, const char * argv[])
 	
 		//// -- DEBUG CODE --
 		//// Can be used to set up custom scenarios
-		
+		/*
 		// Car 2 (Truck counts as 1)
 		if (my_node_num == 2)
 		{
@@ -1415,18 +1422,18 @@ int main(int argc, const char * argv[])
 			y_temp = RIGHT_LANE;
 			speed_meter_per_sec = 30;
 			starting_speed_meter_per_sec = speed_meter_per_sec;
-			x_temp = 850;
+			x_temp = 0;
 		}
 		
-		/*
+		
 		// Car 3
 		if (my_node_num == 3)
 		{
 			cout << "DEBUG: Car 3\n";
 			y_temp = LEFT_LANE;
-			speed_meter_per_sec = 38;
+			speed_meter_per_sec = 20;
 			starting_speed_meter_per_sec = speed_meter_per_sec;
-			x_temp = 486;
+			x_temp = 120;
 		}
 		
 		// Car 4
@@ -1713,7 +1720,7 @@ int main(int argc, const char * argv[])
 								else
 								{
 									// Send packet to that port and hostname
-#ifdef DEBUG_NEW
+#ifdef DEBUG_RBA
 									cout << "RBA: Send to node: " << nodes[my_node_num].connected_nodes[y] << '\n';
 #endif
 									
@@ -2686,6 +2693,7 @@ int main(int argc, const char * argv[])
 			// Write your new info (generated form both Config logic and packet buffer logic) to file
 			// Config File - Updates Links
 			// Packets - Updates Speed, lane position, and platoon forming
+			
 			
 			// Rewrite the config text file
 //			rewrite_config_file(new_line);

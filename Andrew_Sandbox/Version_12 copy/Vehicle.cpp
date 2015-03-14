@@ -30,8 +30,8 @@
 #undef DEBUG_ROAD_RULES
 #undef DEBUG_PLATOON
 #undef DEBUG_RBA
-#undef PROD_OUTPUT
-//#undef DEBUG_NEW
+//#undef PROD_OUTPUT
+#undef DEBUG_NEW
 
 using namespace std;
 
@@ -233,7 +233,6 @@ bool file_exists(const char *filename)
 
 /*
  * Gets our port number as a string depending on what node number we are.
- [10060, 10064]
  */
 string get_port_num(int node_num_in)
 {
@@ -676,7 +675,7 @@ void *start_receiving(void *port_in)
 		}
 		
 		
-#ifdef DEBUG_NEW
+#ifdef DEBUG
 		printf("Packet Received! It contained: %d bytes.\n", numbytes);
 		cout << "Pushing packet to end of buffer.\n";
 #endif
@@ -1289,26 +1288,20 @@ int main(int argc, const char * argv[])
 			unique_nodes_updated[i] = false;
 		}
 		
-		int trying = 0;
 		while (!all_nodes_updated)
 		{
-			cout << "Try Count: " << trying++ << '\n';
 			// Send (or resend an init status packet)
 			for (int i = 1; i < my_node_num; i++)
 			{
-#ifdef DEBUG_NEW
 				cout << "Sending to: " << i << '\n';
 				
 				cout << "Host: " << nodes[i].node_hostname << '\n';
 				cout << "Port: " << nodes[i].node_port_number << '\n';
-#endif
+				
 				send_packet(nodes[i].node_hostname,
 							nodes[i].node_port_number,
 							packet_out);
 			}
-#ifdef DEBUG_NEW
-			cout << "Start: Buffer Size: " << Buffer.size() << '\n';
-#endif
 			
 			if (!Buffer.empty())
 			{
