@@ -1,0 +1,11 @@
+Node 1 ubuntu 10020 5765.087402 0 links ubuntu 10021
+Node 2 ubuntu 10021 5725.587891 0 links ubuntu 10020
+Node 3 ubuntu 10022 5580.087402 0 links ubuntu 10027 ubuntu 10024 ubuntu 10029 ubuntu 10023 ubuntu 10026 ubuntu 10030 ubuntu 10028
+Node 4 ubuntu 10023 5625.288574 0 links ubuntu 10021 ubuntu 10028 ubuntu 10026 ubuntu 10030 ubuntu 10024 ubuntu 10022
+Node 5 ubuntu 10024 5564.989258 0 links ubuntu 10029 ubuntu 10027 ubuntu 10022 ubuntu 10026 ubuntu 10023 ubuntu 10030 ubuntu 10028
+Node 6 ubuntu 10025 5415.000000 0 links ubuntu 10027 ubuntu 10029
+Node 7 ubuntu 10026 5604.689941 0 links ubuntu 10028 ubuntu 10030 ubuntu 10023 ubuntu 10029 ubuntu 10021 ubuntu 10024 ubuntu 10020 ubuntu 10022
+Node 8 ubuntu 10027 5504.390625 0 links ubuntu 10022 ubuntu 10024 ubuntu 10029 ubuntu 10023 ubuntu 10026 ubuntu 10030
+Node 9 ubuntu 10028 5609.891113 0 links ubuntu 10030 ubuntu 10023 ubuntu 10021 ubuntu 10020 ubuntu 10026 ubuntu 10029 ubuntu 10024
+Node 10 ubuntu 10029 5512.491699 0 links ubuntu 10024 ubuntu 10026 ubuntu 10030 ubuntu 10023 ubuntu 10028 ubuntu 10021 ubuntu 10027 ubuntu 10022
+Node 11 ubuntu 10030 5552.192383 0 links ubuntu 10026 ubuntu 10028 ubuntu 10023 ubuntu 10029 ubuntu 10021 ubuntu 10020 ubuntu 10024 ubuntu 10027
