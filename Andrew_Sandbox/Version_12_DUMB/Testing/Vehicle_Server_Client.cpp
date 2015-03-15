@@ -475,6 +475,9 @@ void send_packet(string hostname_to_send, string port_to_send, packet_to_send pa
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_DGRAM;
 	
+	cout << "IDEA ARE LOW: Server: " << hostname_to_send.c_str() << '\n';
+	cout << "IDEA ARE LOW: Port: " << port_to_send.c_str() << '\n';
+	
 	if ((rv = getaddrinfo(hostname_to_send.c_str(), port_to_send.c_str(), &hints, &servinfo)) != 0)
 	{
 		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
@@ -617,6 +620,8 @@ void *start_receiving(void *port_in)
 #endif
 	
 	addr_len = sizeof their_addr;
+	
+	int andy = 0;
 	
 	while(1)
 	{
@@ -1007,42 +1012,167 @@ bool check_if_lane_clear(int lane_in, const node_info (&nodes)[MAX_NUM_OF_NODES 
 /*
  Used for time tracking. 
  */
-utime get_time_from_epoch()
-{
-	utime result;
-	struct timespec spec;
-	
-	clock_gettime(CLOCK_REALTIME, &spec);
-	
-	result.sec = spec.tv_sec;
-	result.nsec = spec.tv_nsec;
-	
-	return result;
-}
+//utime get_time_from_epoch()
+//{
+//	utime result;
+//	struct timespec spec;
+//	
+//	clock_gettime(CLOCK_REALTIME, &spec);
+//	
+//	result.sec = spec.tv_sec;
+//	result.nsec = spec.tv_nsec;
+//	
+//	return result;
+//}
 
 /*
  * Returns the current time as a double. 
  */
 double get_time()
 {
-	// Get the time the packet was sent
-	utime now = get_time_from_epoch();
-	
-	// Get the time as a string
-	string time_stamp_out_string = "";
-	time_stamp_out_string.append(to_string((long long int)now.sec));
-	time_stamp_out_string = time_stamp_out_string.substr(6, time_stamp_out_string.length());
-	time_stamp_out_string.append(".");
-	time_stamp_out_string.append(to_string((long long int)now.nsec));
-	
+//	// Get the time the packet was sent
+//	utime now = get_time_from_epoch();
+//	
+//	// Get the time as a string
+//	string time_stamp_out_string = "";
+//	time_stamp_out_string.append(to_string((long long int)now.sec));
+//	time_stamp_out_string = time_stamp_out_string.substr(6, time_stamp_out_string.length());
+//	time_stamp_out_string.append(".");
+//	time_stamp_out_string.append(to_string((long long int)now.nsec));
+
 	// Return it as a double
-	return stod(time_stamp_out_string);
+	return 0;
 }
+
+#define MAXBUFLEN 100
+#define SERVERPORT "10130"    // the port users will be connecting to
 
 
 
 int main(int argc, const char * argv[])
 {
+	
+	
+	
+	int sockfd;
+	struct addrinfo hints, *servinfo, *p;
+	int rv;
+	int numbytes_tx;
+	int numbytes_rx;
+	char buf[MAXBUFLEN];
+	struct sockaddr_storage their_addr;
+	socklen_t addr_len;
+	
+	
+	if (argc != 3) {
+		fprintf(stderr,"usage: talker hostname message\n");
+		exit(1);
+	}
+	
+	memset(&hints, 0, sizeof hints);
+	hints.ai_family = AF_UNSPEC;
+	hints.ai_socktype = SOCK_DGRAM;
+	
+	if ((rv = getaddrinfo(argv[1], SERVERPORT, &hints, &servinfo)) != 0) {
+		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
+		return 1;
+	}
+	
+	// loop through all the results and make a socket
+	for(p = servinfo; p != NULL; p = p->ai_next) {
+		if ((sockfd = socket(p->ai_family, p->ai_socktype,
+							 p->ai_protocol)) == -1)
+		{
+			perror("talker: socket");
+			continue;
+		}
+		/*
+		 //Add code to bind as well
+		 if (bind(sockfd, p->ai_addr, p->ai_addrlen) == -1)
+		 {
+			close(sockfd);
+			perror("talker: bind");
+			continue;
+		 }
+		 
+		 */
+		break;
+	}
+	
+	if (p == NULL) {
+		fprintf(stderr, "talker: failed to bind socket\n");
+		return 2;
+	}
+	
+	if ((numbytes_tx = sendto(sockfd, argv[2], strlen(argv[2]), 0,
+							  p->ai_addr, p->ai_addrlen)) == -1) {
+		perror("talker: sendto");
+		exit(1);
+	}
+	
+	//    freeaddrinfo(servinfo);
+	
+	printf("talker: sent %d bytes to %s\n", numbytes_tx, argv[1]);
+	
+	//Adding code to try and recieve an echo
+	
+	printf("talker: waiting for conformation echo...\n");
+	
+	addr_len = sizeof their_addr;
+	
+	if ((numbytes_rx = recvfrom(sockfd, buf, MAXBUFLEN-1, 0,
+								(struct sockaddr *)&their_addr, &addr_len)) == -1)
+		//if ((numbytes_rx = recvfrom(sockfd, buf, MAXBUFLEN-1, 0,
+		//	p->ai_addr, p->ai_addrlen)) == -1)
+	{
+		perror("recvfrom");
+		exit(1);
+	}
+	
+	printf("talker: received echo, packet is %d bytes long.\n", numbytes_rx);
+	
+	buf[numbytes_rx] = '\0';
+	
+	printf("talker: echo packet contains: \"%s\"\n", buf);
+	
+	freeaddrinfo(servinfo);
+	close(sockfd);
+	
+	exit(1);
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	// Used for Debugging - Catches Ctrl-C
 	signal(SIGINT, signalHandler); // Prepare code to handle a Ctrl + c interrupt
 	

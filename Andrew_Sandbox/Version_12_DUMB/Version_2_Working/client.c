@@ -14,7 +14,7 @@
 #include <netdb.h>
 
 #define MAXBUFLEN 100
-#define SERVERPORT "4950"    // the port users will be connecting to
+#define SERVERPORT "10130"    // the port users will be connecting to
 
 int main(int argc, char *argv[])
 {

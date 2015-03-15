@@ -66,14 +66,7 @@
 #include <pthread.h>
 #include <deque>
 #include <time.h>
-
-using std::string;
-using std::cout;
-using std::endl;
-using std::ifstream;
-using std::ofstream;
-using std::deque;
-using std::to_string;
+using namespace std;
 
 
 typedef double Timestamp;

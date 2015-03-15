@@ -35,7 +35,7 @@
 //#undef DEBUG_NEW
 //#undef DEBUG_SERVER
 
-using namespace std;
+//using namespace std;
 
 // The buffer used to store incoming packets
 deque<tx_packet> Buffer;
@@ -618,6 +618,8 @@ void *start_receiving(void *port_in)
 	
 	addr_len = sizeof their_addr;
 	
+	int andy = 0;
+	
 	while(1)
 	{
 		tx_packet packet_in;
@@ -1007,36 +1009,36 @@ bool check_if_lane_clear(int lane_in, const node_info (&nodes)[MAX_NUM_OF_NODES 
 /*
  Used for time tracking. 
  */
-utime get_time_from_epoch()
-{
-	utime result;
-	struct timespec spec;
-	
-	clock_gettime(CLOCK_REALTIME, &spec);
-	
-	result.sec = spec.tv_sec;
-	result.nsec = spec.tv_nsec;
-	
-	return result;
-}
+//utime get_time_from_epoch()
+//{
+//	utime result;
+//	struct timespec spec;
+//	
+//	clock_gettime(CLOCK_REALTIME, &spec);
+//	
+//	result.sec = spec.tv_sec;
+//	result.nsec = spec.tv_nsec;
+//	
+//	return result;
+//}
 
 /*
  * Returns the current time as a double. 
  */
 double get_time()
 {
-	// Get the time the packet was sent
-	utime now = get_time_from_epoch();
-	
-	// Get the time as a string
-	string time_stamp_out_string = "";
-	time_stamp_out_string.append(to_string((long long int)now.sec));
-	time_stamp_out_string = time_stamp_out_string.substr(6, time_stamp_out_string.length());
-	time_stamp_out_string.append(".");
-	time_stamp_out_string.append(to_string((long long int)now.nsec));
-	
+//	// Get the time the packet was sent
+//	utime now = get_time_from_epoch();
+//	
+//	// Get the time as a string
+//	string time_stamp_out_string = "";
+//	time_stamp_out_string.append(to_string((long long int)now.sec));
+//	time_stamp_out_string = time_stamp_out_string.substr(6, time_stamp_out_string.length());
+//	time_stamp_out_string.append(".");
+//	time_stamp_out_string.append(to_string((long long int)now.nsec));
+
 	// Return it as a double
-	return stod(time_stamp_out_string);
+	return 0;
 }
 
 

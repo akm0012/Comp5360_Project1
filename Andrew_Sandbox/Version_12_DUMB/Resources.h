@@ -73,7 +73,6 @@ using std::endl;
 using std::ifstream;
 using std::ofstream;
 using std::deque;
-using std::to_string;
 
 
 typedef double Timestamp;
