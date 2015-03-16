@@ -27,13 +27,13 @@
 #define DEBUG_NEW 1
 #define DEBUG_RBA 1
 #define DEBUG_SERVER 1
-//#undef DEBUG	// Turn off DEBUG
-//#undef DEBUG_ROAD_RULES
-//#undef DEBUG_PLATOON
-//#undef DEBUG_RBA
+#undef DEBUG	// Turn off DEBUG
+#undef DEBUG_ROAD_RULES
+#undef DEBUG_PLATOON
+#undef DEBUG_RBA
 //#undef PROD_OUTPUT
-//#undef DEBUG_NEW
-//#undef DEBUG_SERVER
+#undef DEBUG_NEW
+#undef DEBUG_SERVER
 
 //using namespace std;
 
@@ -259,7 +259,7 @@ string get_port_num(int node_num_in)
   case 10:
 		return "10139";
   case 11:
-		return "10130";
+		return "10140";
   default:
 		break;
 	}
@@ -327,11 +327,11 @@ int initial_config(string hostname_in)
 /*
  * Rewrites the Config.txt File, using contents from "nodes" data structure.
  */
-void rewrite_config_file(const node_info (&nodes)[MAX_NUM_OF_NODES + 1], const char *file_name_in)
+void rewrite_config_file(const node_info (&nodes)[MAX_NUM_OF_NODES + 1])
 {
 	ofstream outStream;
 	
-	outStream.open(file_name_in);
+	outStream.open(file_name);
 	
 	for (int i = 1; i < MAX_NUM_OF_NODES + 1; i++)
 	{
@@ -627,7 +627,6 @@ void *start_receiving(void *port_in)
 								 (struct sockaddr *)&their_addr, &addr_len)) == -1)
 		{
 			perror("recvfrom");
-			cout << "ERROR in The Server Thread: recvfrom.\n";
 			exit(1);
 		}
 		
@@ -959,39 +958,85 @@ bool check_if_lane_clear(int lane_in, const node_info (&nodes)[MAX_NUM_OF_NODES 
 }
 
 
+//void rewrite_config_file(string lineToUpdate)
+//{
+//	// Evan Magic
+//	unique_ptr<char[]> lineArray(new char[lineToUpdate.length() + 1]);
+//	strncpy(lineArray.get(), lineToUpdate.c_str(), lineToUpdate.length() + 1);
+//	
+//	string writeThis;
+//	
+//	char *parsedWord;
+//	strtok(lineArray.get(), " ");
+//	parsedWord = strtok(NULL, " ");
+//	
+//	string convParsedWord(parsedWord);
+//	int lineNumber = stoi(convParsedWord);
+//	
+//	ifstream inStream(file_name);
+//	
+//	int currentLine = 1;
+//	string line;
+//	while (getline(inStream, line))
+//	{
+//		if (currentLine == lineNumber)
+//		{
+//			//lineToUpdate.append("\n");
+//			writeThis.append(lineToUpdate);
+//		}
+//		else
+//		{
+//			writeThis.append(line + '\n');
+//		}
+//		
+//		currentLine++;
+//		line = "";
+//	}
+//	inStream.close();
+//	
+//	ofstream outStream;
+//	
+//	outStream.open(file_name);
+//	
+//	outStream.write(writeThis.c_str(), writeThis.size());
+//	
+//	outStream.close();
+//}
+
 /*
  Used for time tracking. 
  */
-utime get_time_from_epoch()
-{
-	utime result;
-	struct timespec spec;
-	
-	clock_gettime(CLOCK_REALTIME, &spec);
-	
-	result.sec = spec.tv_sec;
-	result.nsec = spec.tv_nsec;
-	
-	return result;
-}
+//utime get_time_from_epoch()
+//{
+//	utime result;
+//	struct timespec spec;
+//	
+//	clock_gettime(CLOCK_REALTIME, &spec);
+//	
+//	result.sec = spec.tv_sec;
+//	result.nsec = spec.tv_nsec;
+//	
+//	return result;
+//}
 
 /*
  * Returns the current time as a double. 
  */
 double get_time()
 {
-	// Get the time the packet was sent
-	utime now = get_time_from_epoch();
-	
-	// Get the time as a string
-	string time_stamp_out_string = "";
-	time_stamp_out_string.append(to_string((long long int)now.sec));
-	time_stamp_out_string = time_stamp_out_string.substr(6, time_stamp_out_string.length());
-	time_stamp_out_string.append(".");
-	time_stamp_out_string.append(to_string((long long int)now.nsec));
-	
-	// Return it as a double
-	return stod(time_stamp_out_string);
+//	// Get the time the packet was sent
+//	utime now = get_time_from_epoch();
+//	
+//	// Get the time as a string
+//	string time_stamp_out_string = "";
+//	time_stamp_out_string.append(to_string((long long int)now.sec));
+//	time_stamp_out_string = time_stamp_out_string.substr(6, time_stamp_out_string.length());
+//	time_stamp_out_string.append(".");
+//	time_stamp_out_string.append(to_string((long long int)now.nsec));
+//	
+//	// Return it as a double
+//	return stod(time_stamp_out_string);
+	return 0;
 }
 
 
@@ -1187,7 +1232,7 @@ int main(int argc, const char * argv[])
 		}
 		
 		// Rewrite file with new info
-		rewrite_config_file(nodes, file_name);
+		rewrite_config_file(nodes);
 	}
 	// You are a car
 	else
@@ -1457,7 +1502,7 @@ int main(int argc, const char * argv[])
 		// TODO - This one may be ok. Only write to config file so other nodes can enter highway
 		
 		// Rewrite file with new info
-		rewrite_config_file(nodes, file_name);
+		rewrite_config_file(nodes);
 	}
 	
 	// ----- Prepare MAIN LOOP -----
@@ -1482,21 +1527,6 @@ int main(int argc, const char * argv[])
 	
 	while (1)
 	{
-
-#ifdef DEBUG_NEW
-		cout << "------- \tPlatoon Member: ";
-		
-		if (platoon_member)
-		{
-			cout << platoon_member_count;
-		}
-		else
-		{
-			cout << "NO";
-		}
-		
-		cout << "\tSpeed: " << speed_meter_per_sec << '\n';
-#endif
 		//// DEBUG ONLY
 		//// For debug purposes, I am putting this here so our output ins't so crazy!
 		//if (can_transmit) {
@@ -1616,7 +1646,7 @@ int main(int argc, const char * argv[])
 						if (my_cache.highest_sequence_num[cache_index] < packet_in.sequence_num)
 						{
 							// This is a new packet
-#ifdef DEBUG_RBA
+#ifdef DEBUG
 							cout << "RBA: This is a new packet. (" << my_cache.highest_sequence_num[cache_index];
 							cout << ") < (" << packet_in.sequence_num << ")\n";
 #endif
@@ -1631,7 +1661,7 @@ int main(int argc, const char * argv[])
 						else if (my_cache.highest_sequence_num[cache_index] == packet_in.sequence_num)
 						{
 							// This needs to be rebroadcasted depending on the rebroadcast alg.
-#ifdef DEBUG_RBA
+#ifdef DEBUG
 							cout << "RBA: This is the SAME packet. (" << my_cache.highest_sequence_num[cache_index];
 							cout << ") == (" << packet_in.sequence_num << ")\n";
 #endif
@@ -1651,14 +1681,9 @@ int main(int argc, const char * argv[])
 							
 							// Using the packet_in.previous_hop_node_num to determine which one NOT to send to.
 							
-							// Counting the packet as done here so we can edit the packet_in
-							// Record the throughput time (aka Turn Around Time)
-							
+							// Make a copy of the packet so we don't mess with the start time of the incoming one
 							tx_packet packet_copy;
-							
 							packet_copy = packet_in;
-							
-							packet_copy.time_sent = get_time();
 							
 							int prev_node = packet_in.previous_hop_node_num;
 							
@@ -1673,7 +1698,7 @@ int main(int argc, const char * argv[])
 							// Now we can iterate through our links and send (if applicable)
 							for (int y = 1; y < MAX_NUM_OF_NODES + 1; y++)
 							{
-#ifdef DEBUG
+#ifdef DEBUG_RBA
 								cout << "RBA: Iterating through links: y = " << y << '\n';
 #endif
 								
@@ -1689,7 +1714,7 @@ int main(int argc, const char * argv[])
 								// Check to make sure we only send to our links
 								else if (nodes[my_node_num].connected_nodes[y] == 0)
 								{
-#ifdef DEBUG
+#ifdef DEBUG_RBA
 									cout << "RBA: Do not send to node: " << y << " we are not their link.\n";
 #endif
 								}
@@ -1698,13 +1723,6 @@ int main(int argc, const char * argv[])
 								{
 									// Send packet to that port and hostname
 #ifdef DEBUG_RBA
-									cout << "Connected Nodes: [ ";
-									for (int j = 0; j < MAX_NUM_OF_NODES + 1; j++)
-									{
-										cout << nodes[my_node_num].connected_nodes[j] << " ";
-									}
-									cout << "]\n";
-									
 									cout << "RBA: Send to node: " << nodes[my_node_num].connected_nodes[y] << '\n';
 #endif
 									
@@ -1718,10 +1736,8 @@ int main(int argc, const char * argv[])
 #endif
 									
 									// Calculate "Packet Loss" probability (If > 100 meters, it can't send)
-									if (will_packet_send(distance_apart) || packet_copy.packet_type == REQUEST_PACKET
-										|| packet_copy.packet_type == PLATOON_JOIN_INFO_PACKET)
+									if (will_packet_send(distance_apart))
 									{
-										
 										packets_sent_count++;
 										
 										// If get a green light, we send. Otherwise don't and move on to next neighbor
@@ -1741,27 +1757,107 @@ int main(int argc, const char * argv[])
 										packets_lost_count++;
 									}
 								}
+								
+								
 							}
 		
+//							// Now we can iterate through our links and send (if applicable)
+//							for (int y = 0; y < nodes[my_node_num].number_of_links; y++)
+//							{
+//#ifdef DEBUG
+//								cout << "RBA: Iterating through links: y = " << y << '\n';
+//#endif
+//								
+//								if (nodes[my_node_num].connected_ports[y].compare(prev_port_string) == 0)
+//								{
+//									// Do not send, this is the port where it came from
+//#ifdef DEBUG
+//									cout << "RBA: Do not send to port: " << prev_port_string << " this is where this packet came from.\n";
+//#endif
+//								}
+//								else
+//								{
+//									// Send packet to that port and hostname
+//#ifdef DEBUG
+//									cout << "RBA: Send to port: " << nodes[my_node_num].connected_ports[y];
+//									cout << " at address: " << nodes[my_node_num].connected_hostnames[y] << '\n';
+//#endif
+//									// Need to find which node number this is so we can determine the distance for the packet loss algorithim.
+//									int temp_node_num = 0; // 0 is an invalid node number
+//									
+//									for (int k=1; k < MAX_NUM_OF_NODES + 1; k++)
+//									{
+//										// If this is a connected node and the port number lines up with the port we want to send to
+//										if (connected_nodes[k] == 1
+//											&& (nodes[k].node_port_number).compare(nodes[my_node_num].connected_ports[y]) == 0)
+//										{
+//											// We know the node number is k
+//											temp_node_num = k;
+//											
+//#ifdef DEBUG
+//											cout << "RBA: Node Number: " << k << " corresponds to port: " << nodes[my_node_num].connected_ports[y] << '\n';
+//#endif
+//										}
+//									}
+//									
+//									// Detetmine the distance from this node to it's neighbor
+//									float distance_apart = 0;
+//									distance_apart = x_temp - nodes[temp_node_num].node_x_coordinate;
+//									
+//#ifdef DEBUG
+//									cout << "RBA: Distance between nodes " << my_node_num;
+//									cout << " and " << temp_node_num << " is " << distance_apart << '\n';
+//#endif
+//									
+//									// Calculate "Packet Loss" probability (If > 100 meters, it can't send)
+//									if (will_packet_send(distance_apart))
+//									{
+//										packets_sent_count++;
+//										
+//										// If get a green light, we send. Otherwise don't and move on to next neighbor
+//#ifdef DEBUG
+//										cout << "RBA: Sending packet to: " << nodes[my_node_num].connected_hostnames[y];
+//										cout << " on port: " << nodes[my_node_num].connected_ports[y] << '\n';
+//#endif
+//										
+//										packet_copy.time_sent = get_time();
+//										
+//										send_packet(nodes[my_node_num].connected_hostnames[y],
+//													nodes[my_node_num].connected_ports[y],
+//													packet_copy);
+//									}
+//									else
+//									{
+//										packets_lost_count++;
+//									}
+//								}
+//							} // End FOR loop where we send packets.
 						} // End If for Shall_I_Forward
 						
 					} // End IF checking if this is a new packet
 					else
 					{
 						// This is an old packet, and can be thrown away.
-#ifdef DEBUG_RBA
+#ifdef DEBUG
 						cout << "Old packet, throwing it out...\n";
 #endif
 					}
 				}
 				else
 				{
-#ifdef DEBUG_RBA
+#ifdef DEBUG
 					cout << "Received a packet from myself... Dropping packet.\n";
 #endif
 				}
 				
-				// Use this packet's info to update my state
+				
+				
+				// TODO: Read the packet in and update the NODES data structure. Should take away our need to read/write to files all the time
+				
+				
+				
+				
+				// TODO: Use this packet's info to update my state
 				// Ex: Speed, lane position, send join platoon packet? Or if Truck deal with a recieved platoon request
 				
 				// Make sure we arn't servicing a packet from ourselves
@@ -2189,13 +2285,10 @@ int main(int argc, const char * argv[])
 						
 						speed_meter_per_sec = packet_in.x_speed;
 					}
-					
-					
-				} // End Servicing packet
+				}
 				
 				// Record the throughput time (aka Turn Around Time)
 				update_throughput_time(get_time() - packet_in.time_sent);
-				
 				
 #ifdef DEBUG
 				cout << "Done servicing popped packet.\n";
@@ -2344,11 +2437,174 @@ int main(int argc, const char * argv[])
 				}
 			}
 			
-
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+//			// Use the nodes data structure (from Config.txt) to determine what nodes I can connect to (<100m)
+//			for (int i = 1; i < MAX_NUM_OF_NODES + 1; i++)
+//			{
+//				// Use the Config file to determine what nodes I can connect to (<100m)
+//				if (((x_temp + 100 >= nodes[i].node_x_coordinate && x_temp <= nodes[i].node_x_coordinate)
+//					|| (x_temp - 100 <= nodes[i].node_x_coordinate && x_temp >= nodes[i].node_x_coordinate))
+//					&& (i != my_node_num)) // Makes sure we can't create a link to ourselves.
+//				{
+//#ifdef DEBUG
+//					cout << "In Range of Node: " << i << '\n';
+//#endif
+//					// If this is a newly found node, need to keep track of it
+//					if (connected_nodes[i] == 0)
+//					{
+//						// Keep track of what nodes we are connected to.
+//						connected_nodes[i] = 1;
+//#ifdef DEBUG_ROAD_RULES
+//						cout << "We have come into range of a new node.\n";
+//						//display_all_connected_nodes(connected_nodes);
+////						display_all_node_data(nodes);
+//#endif
+//						// Update our "links" part of the nodes data structure
+//						cout << "INCREASING LINKS\n";
+//						nodes[my_node_num].number_of_links++; // Don't forget to set this!
+//						// Use number of links as our index for the hostname and portnumber arrays
+//						nodes[my_node_num].connected_hostnames[nodes[my_node_num].number_of_links - 1] = nodes[i].node_hostname;
+//						nodes[my_node_num].connected_ports[nodes[my_node_num].number_of_links - 1] = nodes[i].node_port_number;
+//					}
+//					else {
+//#ifdef DEBUG
+//						cout << "We are already connected to node " << i << ". Not adding to connected nodes.\n";
+//#endif
+//					}
+//#ifdef DEBUG
+//				//	display_all_connected_nodes(connected_nodes);
+//#endif
+//				}
+//				// Else we are not in range of that node. - Checks if we need to disconnect.
+//				else {
+//#ifdef DEBUG
+//					//cout << "We are not in range of Node: " << i << '\n';
+//#endif
+//					// If we were connected previously, we need to disconnect
+//					if (connected_nodes[i] == 1)
+//					{
+//#ifdef DEBUG_ROAD_RULES
+//						cout << "We are disconnecting from Node: " << i << '\n';
+//#endif
+//
+//						connected_nodes[i] = 0;
+//						// nodes[my_node_num].number_of_links will tell us how many time we need to loop through the connected hostnames/ports
+//						// ports will be unique, that is how we will determine which index needs to be removed
+//						// Then we need to shuffle all the entires so they are left justified in the array... Linked List anyone?
+//						
+//#ifdef DEBUG_ROAD_RULES
+//						cout << "Number of links: " << nodes[my_node_num].number_of_links << '\n';
+//						//display_all_node_data(nodes);
+//#endif
+//						// Remove the links for the host node
+//						for (int j = 0; j < nodes[my_node_num].number_of_links; j++)
+//						{
+//							if (nodes[my_node_num].connected_ports[j].compare(nodes[i].node_port_number) == 0)
+//							{
+//#ifdef DEBUG_ROAD_RULES
+//								cout << "We need to remove index " << j << " from the connected_hostnames/ports.\n";
+//#endif
+//								//nodes[my_node_num].connected_hostnames[j] = "N/A";
+//								//nodes[my_node_num].connected_ports[j] = "N/A";
+//								
+//								// Shuffle the rest of the elements over (Overwritting j)
+//								while (j < nodes[my_node_num].number_of_links)
+//								{
+//									// Max number of links is 10 (can not have a link to yourself)
+//									// Therefore connected_hostnames/ports[MAX_NUM_OF_NODES] will always be N/A
+//									// So we do not need to worry about j+1 pointing out of bounds
+//									
+//									nodes[my_node_num].connected_hostnames[j] = nodes[my_node_num].connected_hostnames[j+1];
+//									nodes[my_node_num].connected_ports[j] = nodes[my_node_num].connected_ports[j+1];
+//									j++;
+//								}
+//								// Decrement our link counter
+//								nodes[my_node_num].number_of_links--;
+//								//display_all_node_data(nodes);
+//								// Break out of FOR loop!!! J is messed up now and will break the FOR loop if you don't.
+//								break;
+//							}
+//						}
+//						
+//						// Remove the links for the "remote" node
+//						for (int j = 0; j < nodes[i].number_of_links; j++)
+//						{
+//							if (nodes[i].connected_ports[j].compare(nodes[my_node_num].node_port_number) == 0)
+//							{
+//#ifdef DEBUG_ROAD_RULES
+//								cout << "We need to remove index " << j << " from the CLIENT connected_hostnames/ports.\n";
+//#endif
+//								// Shuffle the rest of the elements over (Overwritting j)
+//								while (j < nodes[i].number_of_links)
+//								{
+//									// Max number of links is 10 (can not have a link to yourself)
+//									// Therefore connected_hostnames/ports[MAX_NUM_OF_NODES] will always be N/A
+//									// So we do not need to worry about j+1 pointing out of bounds
+//									
+//									nodes[i].connected_hostnames[j] = nodes[i].connected_hostnames[j+1];
+//									nodes[i].connected_ports[j] = nodes[i].connected_ports[j+1];
+//									j++;
+//								}
+//								// Decrement our link counter
+//								nodes[i].number_of_links--;
+//								//display_all_node_data(nodes);
+//								// Break out of FOR loop!!! J is messed up now and will break the FOR loop if you don't.
+//								break;
+//							}
+//						}
+//					}
+//				}
+//			}
 			
 			// At this point our Node has updated all it's links.
 			
-
+//			// Make cstrings for the various Numbers
+//			char cstrThisNodeNum[get_number_of_digits(my_node_num)];
+//			char cstrThisXTemp[get_number_of_digits(x_temp)];
+//			char cstrThisYTemp[get_number_of_digits(y_temp)];
+//
+//			sprintf(cstrThisNodeNum, "%i", my_node_num);
+//			string as_string = string(cstrThisNodeNum);
+//
+//			// Create part of the string we are going to put into the config.txt file
+//			new_line = "Node " + as_string + " " + nodes[my_node_num].node_hostname
+//				+ " " + nodes[my_node_num].node_port_number + " ";
+//			
+//			sprintf(cstrThisXTemp, "%f", x_temp);
+//			as_string = string(cstrThisXTemp);
+//
+//			// Create part of the string we are going to put into the config.txt file
+//			new_line += as_string + " ";
+//
+//			sprintf(cstrThisYTemp, "%i", y_temp);
+//			as_string = string(cstrThisYTemp);
+//			
+//			// Finish creating the string we are going to put into the config.txt file
+//			new_line += y_temp + " links";
+//			
+//			// Add all the links to the new_line
+//			for (int i = 0; i < nodes[my_node_num].number_of_links; i++)
+//			{
+//				new_line = new_line + " " + nodes[my_node_num].connected_hostnames[i] + " "
+//				+ nodes[my_node_num].connected_ports[i];
+//			}
+//			
+//			// Terminate with a new line
+//			new_line = new_line + "\n";
 			
 #ifdef DEBUG
 //			cout << new_line;
@@ -2441,14 +2697,8 @@ int main(int argc, const char * argv[])
 			// Packets - Updates Speed, lane position, and platoon forming
 			
 			
-			// If Truck write output file
 			// Rewrite the config text file
-			if (my_node_num == 1)
-			{
-				const char *test = "Output.txt";
-				rewrite_config_file(nodes, test);
-			}
-			
+//			rewrite_config_file(new_line);
 		} // End can_transmit - IF
 	} // End While
 	//} // End DEBUG IF Can_Transmit
