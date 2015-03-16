@@ -165,9 +165,6 @@ void read_node_info(node_info (&nodes)[MAX_NUM_OF_NODES + 1])
 						//cout << "LINK FOUND!\n";
 #endif
 						
-#ifdef DEBUG
-						// cout << "Number of Links found: " << nodes[node_num].number_of_links << '\n';
-#endif
 //						// We are past the links keyword, start reading in connected hostnames and port numbers
 //						nodes[node_num].connected_hostnames[link_counter - 1] = next_word;
 						
@@ -352,7 +349,7 @@ void rewrite_config_file(const node_info (&nodes)[MAX_NUM_OF_NODES + 1])
 			{
 				if (nodes[i].connected_nodes[y] == y)
 				{
-					outStream << " " << nodes[i].connected_nodes[y] << " ";
+					outStream << " " << nodes[i].connected_nodes[y];
 				}
 			}
 			// Add the new line
@@ -1137,7 +1134,7 @@ int main(int argc, const char * argv[])
 	
 	if (argc != 2)
 	{
-		cout << "Error: Missing Params (PortNumber)\n";
+		cout << "Error: Missing Params (Config File Name)\n";
 		exit(1);
 	}
 	
