@@ -27,6 +27,8 @@
 #define DEBUG_NEW 1
 #define DEBUG_RBA 1
 #define DEBUG_SERVER 1
+#define TRACE 1
+//#undef TRACE
 #undef DEBUG	// Turn off DEBUG
 #undef DEBUG_ROAD_RULES
 #undef DEBUG_PLATOON
@@ -1639,7 +1641,7 @@ int main(int argc, const char * argv[])
 				// 1. Check Source Address of Packet
 				int incoming_source_address = packet_in.source_address;
 				
-#ifdef DEBUG
+#ifdef TRACE
 				cout << "RBA: Incoming Source Address of packet: " << incoming_source_address << '\n';
 				cout << "RBA: My Address: " << my_address << '\n';
 #endif
@@ -1657,7 +1659,7 @@ int main(int argc, const char * argv[])
 						// If we have reached an empty entry
 						if (my_cache.source_address[i] == 0)
 						{
-#ifdef DEBUG
+#ifdef TRACE
 							cout << "RBA: Adding new address (" << incoming_source_address;
 							cout << ") to index: " << i << " of cache table.\n";
 #endif
@@ -1673,7 +1675,7 @@ int main(int argc, const char * argv[])
 						// Else if this is the droids, I mean index we are looking for
 						else if (my_cache.source_address[i] == incoming_source_address)
 						{
-#ifdef DEBUG
+#ifdef TRACE
 							cout << "RBA: Found address (" << incoming_source_address;
 							cout << ") at index: " << i << " in our cache table.\n";
 #endif
@@ -1693,7 +1695,7 @@ int main(int argc, const char * argv[])
 						if (my_cache.highest_sequence_num[cache_index] < packet_in.sequence_num)
 						{
 							// This is a new packet
-#ifdef DEBUG_RBA
+#ifdef TRACE
 							cout << "RBA: This is a new packet. (" << my_cache.highest_sequence_num[cache_index];
 							cout << ") < (" << packet_in.sequence_num << ")\n";
 #endif
@@ -1708,7 +1710,7 @@ int main(int argc, const char * argv[])
 						else if (my_cache.highest_sequence_num[cache_index] == packet_in.sequence_num)
 						{
 							// This needs to be rebroadcasted depending on the rebroadcast alg.
-#ifdef DEBUG_RBA
+#ifdef TRACE
 							cout << "RBA: This is the SAME packet. (" << my_cache.highest_sequence_num[cache_index];
 							cout << ") == (" << packet_in.sequence_num << ")\n";
 #endif
@@ -1758,7 +1760,7 @@ int main(int argc, const char * argv[])
 								if (nodes[my_node_num].connected_nodes[y] == prev_node)
 								{
 									// Do not send, this is the port where it came from
-#ifdef DEBUG_RBA
+#ifdef TRACE
 									cout << "RBA: Do not send to node: " << prev_node << " this is where this packet came from.\n";
 #endif
 								}
@@ -1774,13 +1776,13 @@ int main(int argc, const char * argv[])
 								else
 								{
 									// Send packet to that port and hostname
-#ifdef DEBUG_RBA
-									cout << "Connected Nodes: [ ";
-									for (int j = 0; j < MAX_NUM_OF_NODES + 1; j++)
-									{
-										cout << nodes[my_node_num].connected_nodes[j] << " ";
-									}
-									cout << "]\n";
+#ifdef TRACE
+//									cout << "Connected Nodes: [ ";
+//									for (int j = 0; j < MAX_NUM_OF_NODES + 1; j++)
+//									{
+//										cout << nodes[my_node_num].connected_nodes[j] << " ";
+//									}
+//									cout << "]\n";
 									
 									cout << "RBA: Send to node: " << nodes[my_node_num].connected_nodes[y] << '\n';
 #endif
@@ -1789,7 +1791,7 @@ int main(int argc, const char * argv[])
 									float distance_apart = 0;
 									distance_apart = x_temp - nodes[y].node_x_coordinate;
 									
-#ifdef DEBUG
+#ifdef DEBUG_RBA
 									cout << "RBA: Distance between nodes " << my_node_num;
 									cout << " and " << y << " is " << distance_apart << '\n';
 #endif
@@ -1802,7 +1804,7 @@ int main(int argc, const char * argv[])
 										packets_sent_count++;
 										
 										// If get a green light, we send. Otherwise don't and move on to next neighbor
-#ifdef DEBUG
+#ifdef TRACE
 										cout << "RBA: Sending packet to: " << nodes[y].node_hostname;
 										cout << " on port: " << nodes[y].node_port_number << '\n';
 #endif
