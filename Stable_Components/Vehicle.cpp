@@ -1207,13 +1207,13 @@ int main(int argc, const char * argv[])
 		speed_meter_per_sec = (rand() % 6) + 25;
 		starting_speed_meter_per_sec = speed_meter_per_sec;
 		
-						// -- DEBUG CODE --
-						// Can be used to set up custom scenarios
-						cout << "DEBUG: Truck 1\n";
-						y_temp = RIGHT_LANE;
-						speed_meter_per_sec = 28;
-						starting_speed_meter_per_sec = speed_meter_per_sec;
-						x_temp = 773;
+//						// -- DEBUG CODE --
+//						// Can be used to set up custom scenarios
+//						cout << "DEBUG: Truck 1\n";
+//						y_temp = RIGHT_LANE;
+//						speed_meter_per_sec = 28;
+//						starting_speed_meter_per_sec = speed_meter_per_sec;
+//						x_temp = 773;
 		
 #ifdef DEBUG
 		cout << "Truck speed: " << speed_meter_per_sec << '\n';
@@ -1424,7 +1424,7 @@ int main(int argc, const char * argv[])
 		
 		//// -- DEBUG CODE --
 		//// Can be used to set up custom scenarios
-		
+		/*
 		 // Car 2 (Truck counts as 1)
 		 if (my_node_num == 2)
 		 {
@@ -1455,7 +1455,7 @@ int main(int argc, const char * argv[])
 			starting_speed_meter_per_sec = speed_meter_per_sec;
 			x_temp = 93;
 		 }
-		 /*
+		
 		 // Car 5
 		 if (my_node_num == 5)
 		 {
