@@ -1,11 +1,15 @@
-//
-//  Resources.h
-//
-//
-//  Created by Andrew Marshall on 2/25/15.
-//  Refactored by Evan Hall on 3/12/15.
-//
-//
+/*
+ *	Comp5360: Project 1
+ *
+ *	File: Resources.h
+ *	Created by Andrew K. Marshall on 2/23/15
+ *  Refactored by Evan Hall on 3/12/15
+ *  Repatterened by Andrew Marshall on 3/13/15
+ *	Due Date: 3/18/15
+ *	Version: 1.0
+ *	Version Notes: Final Version.
+ */
+
 #ifndef RESOURCES_H
 #define RESOURCES_H
 

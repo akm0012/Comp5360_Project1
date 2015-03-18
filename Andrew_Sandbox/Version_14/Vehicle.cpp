@@ -1,12 +1,14 @@
-//
-//  Vehicle.cpp
-//
-//
-//  Created by Andrew Marshall on 2/23/15.
-//  Refactored by Evan Hall on 3/12/15.
-//  Repatterened by Andrew Marshall on 3/13/15
-//
-//
+/*
+ *	Comp5360: Project 1
+ *
+ *	File: Vehicle.cpp
+ *	Created by Andrew K. Marshall on 2/23/15
+ *  Refactored by Evan Hall on 3/12/15
+ *  Repatterened by Andrew Marshall on 3/13/15
+ *	Due Date: 3/18/15
+ *	Version: 1.0
+ *	Version Notes: Final Version.
+ */
 
 #include <pthread.h>
 #include <inttypes.h>
@@ -28,7 +30,7 @@
 #define DEBUG_RBA 1
 #define DEBUG_SERVER 1
 #define TRACE 1
-//#undef TRACE
+#undef TRACE
 #undef DEBUG	// Turn off DEBUG
 #undef DEBUG_ROAD_RULES
 #undef DEBUG_PLATOON
@@ -1520,6 +1522,7 @@ int main(int argc, const char * argv[])
 	// Create thread to time the outgoing status packets
 	//int micro_s = 10000; // Set the timer to 10 milliseconds
 	int micro_s = 100000; // Set the timer to 100 milliseconds
+	//int micro_s = 500000; // Set the timer to 0.5 second
 	//int micro_s = 1000000; // Set the timer to 1 second
 	rc = pthread_create(&timer_thread, NULL, timer, &micro_s);
 	// check for creation errors
