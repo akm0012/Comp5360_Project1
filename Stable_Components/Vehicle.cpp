@@ -30,7 +30,7 @@
 #define DEBUG_RBA 1
 #define DEBUG_SERVER 1
 #define TRACE 1
-//#undef TRACE
+#undef TRACE
 #undef DEBUG	// Turn off DEBUG
 #undef DEBUG_ROAD_RULES
 #undef DEBUG_PLATOON
@@ -47,6 +47,11 @@ deque<tx_packet> Buffer;
 // The boolean used to determine if it has been 10ms
 bool can_transmit = false;
 pthread_mutex_t tx_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+// The boolean used to determine
+bool can_add_to_buff = false;
+pthread_mutex_t buffer_mutex = PTHREAD_MUTEX_INITIALIZER;
+
 
 /* Global Variables - Global so we can use them in out Ctrl-C Interrupt */
 node_info nodes[MAX_NUM_OF_NODES + 1];
@@ -671,9 +676,6 @@ void *start_receiving(void *port_in)
 			
 			
 		}
-		
-		
-		
 		// Else it is a live packet and needs to be processed
 		
 		else if (packet_in.source_address == 0) {
@@ -690,8 +692,15 @@ void *start_receiving(void *port_in)
 			printf("Packet Received! It contained: %d bytes.\n", numbytes);
 			cout << "Size of packet_in: " << sizeof(packet_in) << '\n';
 #endif
+			// Lock the mutex
+			pthread_mutex_lock(&buffer_mutex);
+			
 			// Put the packet in the Queue
 			Buffer.push_back(packet_in); // Getting a seg fault here sometimes
+			
+			// Unlock the mutex
+			pthread_mutex_unlock(&buffer_mutex);
+			
 #ifdef DEBUG_NEW
 			cout << "Post: push_back\n";
 #endif
@@ -1052,7 +1061,13 @@ double get_time()
 	time_stamp_out_string.append(to_string((long long int)now.sec));
 	time_stamp_out_string = time_stamp_out_string.substr(6, time_stamp_out_string.length());
 	time_stamp_out_string.append(".");
-	time_stamp_out_string.append(to_string((long long int)now.nsec));
+//	time_stamp_out_string.append(to_string((long long int)now.nsec));
+	char temp_c_string[9];
+	sprintf(temp_c_string, "%.9ld", (long) now.nsec);
+	time_stamp_out_string.append(temp_c_string);
+	
+//	printf("Now.sec: %ld\n", (long) now.sec);
+//	printf("Now.nsec: %.9ld\n", (long) now.nsec);
 	
 	// Return it as a double
 	return stod(time_stamp_out_string);
@@ -1220,11 +1235,11 @@ int main(int argc, const char * argv[])
 		
 //						// -- DEBUG CODE --
 						// Can be used to set up custom scenarios
-						cout << "DEBUG: Truck 1\n";
-						y_temp = RIGHT_LANE;
-						speed_meter_per_sec = 28;
-						starting_speed_meter_per_sec = speed_meter_per_sec;
-						x_temp = 700;
+					//	cout << "DEBUG: Truck 1\n";
+					//	y_temp = RIGHT_LANE;
+					//	speed_meter_per_sec = 28;
+					//	starting_speed_meter_per_sec = speed_meter_per_sec;
+					//	x_temp = 700;
 		
 #ifdef DEBUG
 		cout << "Truck speed: " << speed_meter_per_sec << '\n';
@@ -1430,7 +1445,7 @@ int main(int argc, const char * argv[])
 		
 		//// -- DEBUG CODE --
 		//// Can be used to set up custom scenarios
-		
+		/*
 		 // Car 2 (Truck counts as 1)
 		 if (my_node_num == 2)
 		 {
@@ -1461,7 +1476,7 @@ int main(int argc, const char * argv[])
 			starting_speed_meter_per_sec = speed_meter_per_sec;
 			x_temp = 480;
 		 }
-		/*
+		
 		 // Car 5
 		 if (my_node_num == 5)
 		 {
@@ -1522,8 +1537,8 @@ int main(int argc, const char * argv[])
 	// ----- Prepare MAIN LOOP -----
 	
 	// Create thread to time the outgoing status packets
-//	int micro_s = 10000; // Set the timer to 10 milliseconds
-	int micro_s = 100000; // Set the timer to 100 milliseconds
+	int micro_s = 10000; // Set the timer to 10 milliseconds
+//	int micro_s = 100000; // Set the timer to 100 milliseconds
 	//int micro_s = 50000; // Set the timer to 50 milliseconds
 	//int micro_s = 1000000; // Set the timer to 1 second
 	rc = pthread_create(&timer_thread, NULL, timer, &micro_s);
@@ -1579,11 +1594,17 @@ int main(int argc, const char * argv[])
 			cout << "Grabbing packet from front of queue.\n";
 			cout << "Buffer Size: " << Buffer.size() << '\n';
 #endif
+			// Lock the mutex
+			pthread_mutex_lock(&buffer_mutex);
+			
 			// Copy first item in queue
 			packet_in = Buffer.front();
-			
 			// Pop the first packet in queue
 			Buffer.pop_front();
+			
+			// Unlock the mutex
+			pthread_mutex_unlock(&buffer_mutex);
+			
 			
 			// Check if the packet was a status packet, if so, update our Nodes DS
 			
@@ -2360,11 +2381,11 @@ int main(int argc, const char * argv[])
 			// Update our x location (have to do it in here so we can accuratly calculate our delta(x))
 			//set_new_location(x_temp, speed_meter_per_sec, micro_s);
 			
-			// New way to get current position
-			//			cout << "last_time_sample: " << setprecision(14) << last_time_sample << '\n';
-			//			cout << "get_time(): " << setprecision(14) << get_time() << '\n';
-			//
-			//			cout << "get_time() - last_time_sample: " << setprecision(14) << get_time() - last_time_sample << '\n';
+			 //New way to get current position
+//						cout << "last_time_sample: " << setprecision(14) << last_time_sample << '\n';
+//						cout << "get_time(): " << setprecision(14) << get_time() << '\n';
+//			
+//						cout << "get_time() - last_time_sample: " << setprecision(14) << get_time() - last_time_sample << '\n';
 			
 			
 			x_move = (get_time() - last_time_sample) * (speed_meter_per_sec);
