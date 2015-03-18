@@ -1537,8 +1537,8 @@ int main(int argc, const char * argv[])
 	// ----- Prepare MAIN LOOP -----
 	
 	// Create thread to time the outgoing status packets
-	int micro_s = 10000; // Set the timer to 10 milliseconds
-//	int micro_s = 100000; // Set the timer to 100 milliseconds
+	//int micro_s = 10000; // Set the timer to 10 milliseconds
+	int micro_s = 100000; // Set the timer to 100 milliseconds
 	//int micro_s = 50000; // Set the timer to 50 milliseconds
 	//int micro_s = 1000000; // Set the timer to 1 second
 	rc = pthread_create(&timer_thread, NULL, timer, &micro_s);
@@ -1932,7 +1932,7 @@ int main(int argc, const char * argv[])
 									// Match car's speed
 									speed_meter_per_sec = packet_in.x_speed;
 									
-									// Might have to teleport to exactly 20 m away so this case keeps calling
+									// Might have to adjust to exactly 20 m away so this case keeps calling
 									// POTENTIAL PROBLEM: This should fix the issue when a car matches the speed of the car ahead,
 									// but does so where he stays more than danger close distance away.
 									x_temp = packet_in.x_position - 19;
@@ -1952,7 +1952,7 @@ int main(int argc, const char * argv[])
 								// Match speed of car ahead of me
 								speed_meter_per_sec = packet_in.x_speed;
 								
-								//TODO: May need to teleport
+								//TODO: May need to adjust
 #ifdef DEBUG_ROAD_RULES
 								cout << "-- ROAD RULES: DANGER CLOSE In LEFT Lane. --\n";
 								cout << "Matching Speed.\n";
@@ -2250,7 +2250,7 @@ int main(int argc, const char * argv[])
 #ifdef DEBUG_PLATOON
 						cout << "--- Platoon: Received confirmation I can join platoon.\n";
 #endif
-						// Teleport to my platoon position
+						// Adjust to my platoon position
 						x_temp = packet_in.x_position - find_distance_from_truck(packet_in.number_of_platoon_members);
 						y_temp = packet_in.y_position;
 						
