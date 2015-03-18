@@ -509,7 +509,7 @@ void send_packet(string hostname_to_send, string port_to_send, packet_to_send pa
 							  p->ai_addr, p->ai_addrlen)) == -1)
 	{
 		perror("Error: sendto");
-		exit(1);
+		//exit(1);
 	}
 	
 #ifdef DEBUG
@@ -523,7 +523,7 @@ void send_packet(string hostname_to_send, string port_to_send, packet_to_send pa
 		cout << size_of_packet_minus_hostname(packet_out) + MAX_HOSTNAME_LENGTH << " != " << numbytes_tx << '\n';
 		cout << "Error: Number of bytes sent + Hostname space does not match. See send_packet() method ";
 		cout << " and don't forget to update size_of_packet_minus_hostname() if you changed the packet struct.\n";
-		exit(0);
+		//exit(0);
 	}
 	
 	freeaddrinfo(servinfo);
